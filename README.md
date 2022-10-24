@@ -8,7 +8,7 @@ What would it feel like to create the magical lines that make up the tool we all
 
 Come along in our journey to implement React from scratch, making a simple React project work with your own `my-react.js` library.
 
-At the end of the workshop, a simple TODO app written in React will work with your very own my-react.js
+At the end of the workshop, a simple TODO app written in React will work with your very own `my-react.js`.
 
 Level: Medium
 Duration of workshop: 3 hours
