@@ -1,0 +1,16 @@
+.list {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    margin-bottom: 32px;
+}
+
+.listItem {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    border: 1px solid black;
+    border-radius: 5px;
+    margin-bottom: 16px;
+}

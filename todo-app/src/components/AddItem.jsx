@@ -1,0 +1,28 @@
+ import { useState } from 'react';
+import './AddItem.css';
+
+ const AddItem = ({setItems}) => {
+    const [item, setItem] = useState('')
+
+    const handleInputChange = (event) => {
+        setItem(event.target.value)
+    }
+
+    const handleOnAdd = (event) => {
+        event.preventDefault();
+        setItems(items => [item, ...items])
+        setItem('')
+    }
+
+ return (
+    <form className='addSection' onSubmit={handleOnAdd}>
+        <label className='inputLabel' for='itemInput'>Add an item to your list</label>
+        <input className='itemInput' onChange={handleInputChange} value={item} name='itemInput' placeholder='Add something you need to do' />
+        <button className='addButton' type='submit' disabled={!item}>Add!</button>
+    </form>
+
+
+    )
+}
+
+export default AddItem;
