@@ -9,7 +9,7 @@ const ToDoItem = ({item, onDelete}) => (
 
  const ToDos = ({ items, deleteItem }) => (
     <ul className='list'>
-        {items?.map(item => <ToDoItem key={item} item={item} onDelete={deleteItem} />)}
+        {items?.map((item, index) => <ToDoItem key={index + item} item={item} onDelete={deleteItem} />)}
     </ul>
  )
 

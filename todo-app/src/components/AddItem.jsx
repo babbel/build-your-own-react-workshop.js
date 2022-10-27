@@ -1,7 +1,7 @@
- import { useState } from 'react';
+import { useState } from 'react';
 import './AddItem.css';
 
- const AddItem = ({setItems}) => {
+ const AddItem = ({ onAddItem }) => {
     const [item, setItem] = useState('')
 
     const handleInputChange = (event) => {
@@ -10,7 +10,7 @@ import './AddItem.css';
 
     const handleOnAdd = (event) => {
         event.preventDefault();
-        setItems(items => [item, ...items])
+        onAddItem(item)
         setItem('')
     }
 

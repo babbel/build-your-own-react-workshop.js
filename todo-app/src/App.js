@@ -7,7 +7,11 @@ function App() {
   const [items, setItems] = useState([]);
 
   const deleteItem = (item) => {
-    setItems(existingItems => items.filter(existingItem => existingItem !== item))
+    setItems(existingItems => existingItems.filter(existingItem => existingItem !== item))
+  }
+
+  const addItem = (item) => {
+    setItems(items => [item, ...items])
   }
 
   console.log({items})
@@ -24,7 +28,7 @@ function App() {
         </a>
       </header>
       <div className="content">
-        <AddItem setItems={setItems} />
+        <AddItem onAddItem={addItem} />
         <ToDos items={items} deleteItem={deleteItem} />
       </div>
     </div>
