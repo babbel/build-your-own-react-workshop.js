@@ -4,7 +4,7 @@ import ToDos from './components/ToDos';
 import './App.css';
 
 function App() {
-  const [items, setItems] = useState([]);
+  const [items, setItems] = useState(["Hello world!", "Super cool!"]);
 
   const deleteItem = (item) => {
     setItems(existingItems => existingItems.filter(existingItem => existingItem !== item))

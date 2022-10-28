@@ -8,6 +8,7 @@ import { DOMHandlers } from 'my-own-react';
 
 
 
+/*
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
@@ -17,7 +18,10 @@ root.render(
     </div>
   </React.StrictMode>
 );
+*/
 
+const root = DOMHandlers.createRoot(document.getElementById('root'));
+root.render(<App />);
 
 /*
 const SimpleTest = () => (
