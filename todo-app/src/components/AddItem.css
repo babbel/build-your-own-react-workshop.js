@@ -1,0 +1,21 @@
+.addSection {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.inputLabel {
+ margin-right: 16px;
+}
+
+.itemInput {
+    width: 70%;
+    max-width: 400px;
+    margin-right: 16px;
+}
+
+.addButton {
+    width: 64px;
+}
