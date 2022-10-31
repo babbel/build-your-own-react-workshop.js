@@ -1,12 +1,10 @@
 const jsStyleToCSSStyle = (styleObject) => {
   // const declaration = new CSSStyleDeclaration();
   const declaration = document.createElement('span').style;
-  console.log('style object', styleObject);
   Object.entries(styleObject).forEach(([key, value]) => {
     // Fun fact: this doesn't take care of converting unitless to unit-based values
     // e.g. height: 100 becomes height: 100px in React, but not with this
     declaration[key] = value;
-    console.log(declaration[key]);
     if (declaration[key] === '' && value !== '') {
       throw new Error(`Invalid ${key}:${value} CSS`);
     }
@@ -63,8 +61,6 @@ const renderElementToHtml = element => isNonPrimitiveElement(element) ? renderCo
 const createRoot = (rootElement) => ({
   rootElement,
   render: (rootChild) => {
-    console.log('render called on ', rootElement);
-    console.log(rootChild);
     const rootChildAsHTML = renderElementToHtml(rootChild);
     rootElement.appendChild(rootChildAsHTML);
   }
