@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useLocalStorage } from './hooks/useStorageValue';
 import AddItem from './components/AddItem';
 import ToDos from './components/ToDos';
 import './App.css';
 
 function App() {
-  const [items, setItems] = useState([]);
+  const [items, setItems] = useLocalStorage('todoItems', [])
 
   const deleteItem = (item) => {
     setItems(existingItems => existingItems.filter(existingItem => existingItem !== item))
@@ -14,7 +14,6 @@ function App() {
     setItems(items => [item, ...items])
   }
 
-  console.log({items})
   return (
     <div className="App">
       <header className="App-header">
