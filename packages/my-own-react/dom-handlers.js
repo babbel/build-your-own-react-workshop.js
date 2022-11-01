@@ -1,3 +1,5 @@
+import { startRenderSubscription } from '.';
+
 const jsStyleToCSSStyle = (styleObject) => {
   // const declaration = new CSSStyleDeclaration();
   const declaration = document.createElement('span').style;
@@ -24,24 +26,43 @@ const transformPropToDomProp = (prop) => {
 
 const isNonPrimitiveElement = (element) => typeof element === 'object' && element.type;
 
-const renderComponentElementToHtml = ({ props: { children, ...props }, type }) => {
-  if (typeof type === 'function') {
-    const result = type({ children, ...props });
-    return renderElementToHtml(result);
+const eventHandlersProps = ['onClick', 'onChange', 'onSubmit'];
+
+const addEventHandler = (domElement, { key, value }) => {
+  switch (key) {
+    case 'onClick':
+      return domElement.addEventListener('click', value);
+    case 'onChange':
+      return domElement.addEventListener('input', value);
+    case 'onSubmit':
+      return domElement.addEventListener('submit', value);
   }
+}
+
+const booleanProps = ['disabled'];
+
+const renderComponentElementToHtml = ({ props: { children, ...props }, type }) => {
   const domElement = document.createElement(type);
-  const childrenArray = Array.isArray(children) ? children : [children];
-  const childrenAsDomElement = childrenArray.map(child => renderElementToHtml(child));
   Object.entries(props)
-    .map(([key, value]) => transformPropToDomProp({ key, value }))
-    .forEach(({key, value}) => {
-      domElement.setAttribute(key, value);
-    });
-  childrenAsDomElement.forEach(childElement => {
-    if (childElement) {
-      domElement.appendChild(childElement);
+  .map(([key, value]) => transformPropToDomProp({ key, value }))
+  .forEach(({key, value}) => {
+    if (eventHandlersProps.includes(key)) {
+      addEventHandler(domElement, { key, value });
+      return;
     }
+    if (booleanProps.includes(key) && !value) {
+      return;
+    }
+    domElement.setAttribute(key, value);
   });
+  if (children) {
+    const childrenAsDomElement = children.map(child => renderElementToHtml(child));
+    childrenAsDomElement.forEach(childElement => {
+      if (childElement) {
+        domElement.appendChild(childElement);
+      }
+    });
+  }
   return domElement;
 }
 
@@ -61,8 +82,16 @@ const renderElementToHtml = element => isNonPrimitiveElement(element) ? renderCo
 const createRoot = (rootElement) => ({
   rootElement,
   render: (rootChild) => {
-    const rootChildAsHTML = renderElementToHtml(rootChild);
-    rootElement.appendChild(rootChildAsHTML);
+    let lastChild;
+    startRenderSubscription(rootChild, rootChildDom => {
+      const rootChildAsHTML = renderElementToHtml(rootChildDom);
+      if (!lastChild) {
+        rootElement.appendChild(rootChildAsHTML);
+      } else {
+        rootElement.replaceChild(rootChildAsHTML, lastChild);
+      }
+      lastChild = rootChildAsHTML;
+    });
   }
 });
 
