@@ -37,19 +37,16 @@ const element = getVDOMElement(pointerToHelloWorld, VDOM); // `Hello world!`
 
 export const isNonPrimitiveElement = (element) => typeof element === 'object' && element.type;
 
-const getVDOMElement = (pointer, VDOM) => pointer.reduce((targetElement, currentIndex) => (targetElement || [])[currentIndex], VDOM.previous);
+const getVDOMElement = (pointer, VDOM) => pointer.reduce((targetElement, currentIndex) => (targetElement || [])[currentIndex], VDOM);
 
 const setCurrentVDOMElement = (pointer, element, VDOM) => {
-  let pointerToCurrent = VDOM.current;
-  pointer.slice(0, -1).forEach((currentIndex) => {
-    pointerToCurrent = pointerToCurrent[currentIndex];
-  });
+  const pointerToCurrent = getVDOMElement(pointer.slice(0, -1), VDOM.current);
   pointerToCurrent[pointer[pointer.length - 1]] = element;
 };
 
 const renderComponentElement = (element, VDOM, VDOMPointer, hooks) => {
   const { props: { children, ...props }, type } = element;
-  const previousDOMElement = getVDOMElement(VDOMPointer, VDOM);
+  const previousDOMElement = getVDOMElement(VDOMPointer, VDOM.previous);
   const isFirstRender = previousDOMElement === undefined || previousDOMElement.type === element.type;
   if (typeof type === 'function') {
     hooks.registerHooks(VDOMPointer, isFirstRender);
@@ -61,10 +58,7 @@ const renderComponentElement = (element, VDOM, VDOMPointer, hooks) => {
   if (children) {
     const childrenArray = Array.isArray(children) ? children : [children];
     setCurrentVDOMElement(VDOMPointer, [element, []], VDOM);
-    const renderedChildren = childrenArray.map((child, index) => {
-      const renderedChild = render(child, VDOM, [...VDOMPointer, index], hooks);
-      return renderedChild;
-    });
+    const renderedChildren = childrenArray.map((child, index) => render(child, VDOM, [...VDOMPointer, index], hooks));
     return { props: { children: renderedChildren, ...props }, type };
   }
   setCurrentVDOMElement(VDOMPointer, [element], VDOM);
