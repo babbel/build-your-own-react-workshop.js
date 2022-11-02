@@ -98,13 +98,7 @@ let globalHooksReplacer = {};
 
 export const useState = (...args) => globalHooksReplacer.useState(...args);
 
-const makeMakeSetState = (onUpdate, hooksMap) => (VDOMPointer, stateIndex) => (newStateOrCb) => {
-  const newStateFn = typeof newStateOrCb === 'function' ? newStateOrCb : () => newStateOrCb;
-  hooksMap[VDOMPointer].state[stateIndex] = newStateFn(hooksMap[VDOMPointer].state[stateIndex]);
-  onUpdate();
-};
-
-const makeMakeUseState = (makeSetState, hooksMap) => (VDOMPointer, isFirstRender) => {
+const makeMakeUseState = (onUpdate, hooksMap) => (VDOMPointer, isFirstRender) => {
   let stateIndexRef = { current: 0 };
   let hooksMapPointer = hooksMap[VDOMPointer];
   if (isFirstRender) {
@@ -116,7 +110,12 @@ const makeMakeUseState = (makeSetState, hooksMap) => (VDOMPointer, isFirstRender
     if (isFirstRender) {
       hooksMapPointer.state[stateIndex] = initialValue;
     }
-    return [hooksMapPointer.state[stateIndex], makeSetState(VDOMPointer, stateIndex)];
+    const setState = (newStateOrCb) => {
+      const newStateFn = typeof newStateOrCb === 'function' ? newStateOrCb : () => newStateOrCb;
+      hooksMap[VDOMPointer].state[stateIndex] = newStateFn(hooksMap[VDOMPointer].state[stateIndex]);
+      onUpdate();
+    };
+    return [hooksMapPointer.state[stateIndex], setState];
   };
 }
 
@@ -132,8 +131,7 @@ const createHooks = (onUpdate) => {
   const hooksMap = {};
   const hooks = { current: null };
   const boundOnUpdate = () => onUpdate(hooks.current);
-  const makeSetState = makeMakeSetState(boundOnUpdate, hooksMap);
-  const makeUseState = makeMakeUseState(makeSetState, hooksMap);
+  const makeUseState = makeMakeUseState(boundOnUpdate, hooksMap);
   const registerHooks = makeRegisterHooks(hooksMap, makeUseState);
   hooks.current = { registerHooks };
   return hooks.current;
