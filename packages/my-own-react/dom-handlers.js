@@ -69,9 +69,12 @@ const renderComponentElementToHtml = ({ props: { children, ...props }, type }) =
 const renderPrimitiveToHtml = primitiveType => {
   switch (typeof primitiveType) {
     case 'string':
+    case 'number':
       return document.createTextNode(primitiveType);
     case 'undefined':
       return;
+    case 'boolean':
+      return primitiveType ? renderPrimitiveToHtml('true') : undefined;
     default:
       throw new Error(`Type ${primitiveType} is not a known renderable type.`);
   }

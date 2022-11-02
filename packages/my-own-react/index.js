@@ -21,23 +21,35 @@ Given the DOM:
   <button>Test</button>
 </div>
 
-// Gets you the following VDOM representation:
+And a structure where we represent an element and its children as a tuple, for example
+[strong, [['yo']]]
+
+Gets you the following VDOM representation:
 const VDOM = [
-  [div, [
-    [span, [[strong, ['yo']], 'Hello world!']],
-    [button, ['Test']]
-  ]]
+  [div,
+    [span,
+      [strong,
+        ['yo']
+      ], 
+      ['Hello world!']
+    ],
+    [button,
+      ['Test']
+    ]
+  ]
 ]
 
 // So a pointer to it can look like:
-const pointerToHelloWorld = [0, 0, 1];
-const element = getVDOMElement(pointerToHelloWorld, VDOM); // `Hello world!`
+const pointerToHelloWorld = [0, 1, 2];
+const element = getVDOMElement(pointerToHelloWorld, VDOM); // [`Hello world!`]
+And you access the element itself by extracting the first element in the tuple, e.g.
+const [button] = getVDOMElement([0, 2]], VDOM); // button
 */
 
 
 export const isNonPrimitiveElement = (element) => typeof element === 'object' && element.type;
 
-const getVDOMElement = (pointer, VDOM) => pointer.reduce((targetElement, currentIndex) => (targetElement || [])[currentIndex], VDOM);
+const getVDOMElement = (pointer, VDOM) => pointer.reduce((targetElement, currentIndex) => (targetElement[currentIndex] || []), VDOM);
 
 const setCurrentVDOMElement = (pointer, element, VDOM) => {
   const pointerToCurrent = getVDOMElement(pointer.slice(0, -1), VDOM.current);
@@ -46,19 +58,19 @@ const setCurrentVDOMElement = (pointer, element, VDOM) => {
 
 const renderComponentElement = (element, VDOM, VDOMPointer, hooks) => {
   const { props: { children, ...props }, type } = element;
-  const previousDOMElement = getVDOMElement(VDOMPointer, VDOM.previous);
-  const isFirstRender = previousDOMElement === undefined || previousDOMElement.type === element.type;
+  const [previousDOMElement] = getVDOMElement(VDOMPointer, VDOM.previous);
+  const isFirstRender = previousDOMElement === undefined || previousDOMElement.type !== element.type;
   if (typeof type === 'function') {
     hooks.registerHooks(VDOMPointer, isFirstRender);
     const renderedElement = type({ children, ...props });
-    setCurrentVDOMElement(VDOMPointer, [element, []], VDOM);
-    const renderedElementDOM = render(renderedElement, VDOM, [...VDOMPointer, 0], hooks);
+    setCurrentVDOMElement(VDOMPointer, [element], VDOM);
+    const renderedElementDOM = render(renderedElement, VDOM, [...VDOMPointer, 1], hooks);
     return renderedElementDOM;
   }
   if (children) {
     const childrenArray = Array.isArray(children) ? children : [children];
-    setCurrentVDOMElement(VDOMPointer, [element, []], VDOM);
-    const renderedChildren = childrenArray.map((child, index) => render(child, VDOM, [...VDOMPointer, index], hooks));
+    setCurrentVDOMElement(VDOMPointer, [element], VDOM);
+    const renderedChildren = childrenArray.map((child, index) => render(child, VDOM, [...VDOMPointer, index + 1], hooks));
     return { props: { children: renderedChildren, ...props }, type };
   }
   setCurrentVDOMElement(VDOMPointer, [element], VDOM);
