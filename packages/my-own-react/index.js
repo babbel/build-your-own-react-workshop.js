@@ -22,9 +22,14 @@ Given the DOM:
 </div>
 
 And a structure where we represent an element and its children as a tuple, for example
-[strong, [['yo']]]
+const strongVDOM = [strong, ['yo']];
 
-Gets you the following VDOM representation:
+Then we can have more children, for example:
+const spanVDOM = [span, strongVDOM], ['Hello World!']];
+And if we make it altogether
+const spanVDOM = [span, [strong, ['yo']]], ['Hello World!']];
+
+So we get the full picture of the DOM above as the following VDOM representation:
 const VDOM = [
   [div,
     [span,
