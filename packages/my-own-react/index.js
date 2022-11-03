@@ -35,7 +35,7 @@ const VDOM = [
     [span,
       [strong,
         ['yo']
-      ], 
+      ],
       ['Hello world!']
     ],
     [button,
@@ -103,6 +103,15 @@ let globalHooksReplacer = {};
 
 export const useState = (...args) => globalHooksReplacer.useState(...args);
 
+const isStatesDiffer = (prev, next) => {
+  console.log({prev, next})
+  if (typeof next === 'object') {
+    return JSON.stringify(prev) !== JSON.stringify(next)
+  }
+
+  return prev !== next
+}
+
 const makeMakeUseState = (onUpdate, hooksMap) => (VDOMPointer, isFirstRender) => {
   let stateIndexRef = { current: 0 };
   let hooksMapPointer = hooksMap[VDOMPointer];
@@ -111,14 +120,18 @@ const makeMakeUseState = (onUpdate, hooksMap) => (VDOMPointer, isFirstRender) =>
   }
   return (initialValue) => {
     const stateIndex = stateIndexRef.current;
-    stateIndexRef.current += 1; 
+    stateIndexRef.current += 1;
     if (isFirstRender) {
       hooksMapPointer.state[stateIndex] = initialValue;
     }
     const setState = (newStateOrCb) => {
       const newStateFn = typeof newStateOrCb === 'function' ? newStateOrCb : () => newStateOrCb;
-      hooksMap[VDOMPointer].state[stateIndex] = newStateFn(hooksMap[VDOMPointer].state[stateIndex]);
-      onUpdate();
+      const shouldUpdateState = isStatesDiffer(hooksMap[VDOMPointer].state[stateIndex], newStateFn(hooksMap[VDOMPointer].state[stateIndex]))
+      console.log({shouldUpdateState})
+      if (shouldUpdateState) {
+        hooksMap[VDOMPointer].state[stateIndex] = newStateFn(hooksMap[VDOMPointer].state[stateIndex]);
+        onUpdate();
+      }
     };
     return [hooksMapPointer.state[stateIndex], setState];
   };
