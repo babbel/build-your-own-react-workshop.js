@@ -102,6 +102,7 @@ const rootRender = (element, hooks, vdom) => {
 let globalHooksReplacer = {};
 
 export const useState = (...args) => globalHooksReplacer.useState(...args);
+export const useEffect = (...args) => globalHooksReplacer.useEffect(...args);
 
 const makeMakeUseState = (onUpdate, hooksMap) => (VDOMPointer, isFirstRender) => {
   let stateIndexRef = { current: 0 };
@@ -124,20 +125,57 @@ const makeMakeUseState = (onUpdate, hooksMap) => (VDOMPointer, isFirstRender) =>
   };
 }
 
-const makeRegisterHooks = (hooksMap, makeUseState) => (VDOMPointer, isFirstRender) => {
+const areDependenciesEqual = (a, b) => Array.isArray(a) && Array.isArray(b) && a.every((element, index) => element === b[index]);
+
+const makeMakeUseEffect = (registerOnUpdatedCallback, hooksMap) => {
+  const combinedCallbackRef = { current: () => {} };
+  registerOnUpdatedCallback(() => {
+    combinedCallbackRef.current();
+    combinedCallbackRef.current = () => {};
+  });
+  const registerEffectForNextRender = (callback) => {
+    const { current } = combinedCallbackRef;
+    combinedCallbackRef.current = () => {
+      current();
+      callback();
+    };
+  };
+  return  (VDOMPointer, isFirstRender) => {
+    const effectIndexRef = { current: 0 };
+    const hooksMapPointer = hooksMap[VDOMPointer];
+    if (isFirstRender) {
+      hooksMapPointer.effect = [];
+    }
+    return (effectCallback, dependencies) => {
+      const effectIndex = effectIndexRef.current;
+      const previousEffectDependencies = hooksMapPointer.effect[effectIndex];
+      effectIndexRef.current += 1;
+      if (areDependenciesEqual(previousEffectDependencies, dependencies)) {
+        return;
+      }
+      hooksMapPointer.effect[effectIndex] = [...dependencies];
+      registerEffectForNextRender(effectCallback);
+    };
+  }
+}
+
+const makeRegisterHooks = (hooksMap, makeUseState, makeUseEffect) => (VDOMPointer, isFirstRender) => {
   if (isFirstRender) {
     hooksMap[VDOMPointer] = {};
   }
   const useState = makeUseState(VDOMPointer, isFirstRender);
   globalHooksReplacer.useState = useState;
+  const useEffect = makeUseEffect(VDOMPointer, isFirstRender);
+  globalHooksReplacer.useEffect = useEffect;
 }
 
-const createHooks = (onUpdate) => {
+const createHooks = (onUpdate, registerOnUpdatedCallback) => {
   const hooksMap = {};
   const hooks = { current: null };
   const boundOnUpdate = () => onUpdate(hooks.current);
   const makeUseState = makeMakeUseState(boundOnUpdate, hooksMap);
-  const registerHooks = makeRegisterHooks(hooksMap, makeUseState);
+  const makeUseEffect = makeMakeUseEffect(registerOnUpdatedCallback, hooksMap);
+  const registerHooks = makeRegisterHooks(hooksMap, makeUseState, makeUseEffect);
   hooks.current = { registerHooks };
   return hooks.current;
 }
@@ -147,11 +185,16 @@ export const startRenderSubscription = (element, updateCallback) => {
     previous: [],
     current: [],
   };
+  let afterUpdate;
+  const registerOnUpdatedCallback = (callback) => {
+    afterUpdate = callback;
+  };
   const update = (hooks) => {
     const dom = rootRender(element, hooks, vdom);
     updateCallback(dom);
+    afterUpdate();
   };
-  const hooks = createHooks(update);
+  const hooks = createHooks(update, registerOnUpdatedCallback);
   update(hooks);
 };
 
@@ -195,7 +238,7 @@ export const {
   useContext,
   useDebugValue,
   useDeferredValue,
-  useEffect,
+  // useEffect,
   experimental_useEvent,
   useImperativeHandle,
   useInsertionEffect,
