@@ -148,13 +148,20 @@ const makeMakeUseEffect = (registerOnUpdatedCallback, hooksMap) => {
     }
     return (effectCallback, dependencies) => {
       const effectIndex = effectIndexRef.current;
-      const previousEffectDependencies = hooksMapPointer.effect[effectIndex];
+      const previousEffect = hooksMapPointer.effect[effectIndex] || {};
+      const { cleanUp = (() => {})} = previousEffect;
       effectIndexRef.current += 1;
-      if (areDependenciesEqual(previousEffectDependencies, dependencies)) {
+      if (areDependenciesEqual(previousEffect.dependencies, dependencies)) {
         return;
       }
-      hooksMapPointer.effect[effectIndex] = [...dependencies];
-      registerEffectForNextRender(effectCallback);
+      cleanUp();
+      hooksMapPointer.effect[effectIndex] = {
+        dependencies: [...dependencies],
+        cleanUp: () => {},
+      };
+      registerEffectForNextRender(() => {
+        hooksMapPointer.effect[effectIndex].cleanUp = (effectCallback() || (() => {}));
+      });
     };
   }
 }
