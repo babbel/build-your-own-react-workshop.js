@@ -157,6 +157,99 @@ const createHooks = (onUpdate) => {
   return hooks.current;
 }
 
+const compareVDOMElement = (prev, curr, pointer = [0]) => {
+  const pointerStr = pointer.join(',');
+
+  // no change
+  if (!prev && !curr) {
+    return {};
+  }
+
+  // added element
+  if (!prev) {
+    return { [pointerStr]: ['node_added'] };
+  }
+
+  // removed element
+  if (!curr) {
+    return { [pointerStr]: ['node_removed'] };
+  }
+
+  const prevElement = prev[0];
+  const currElement = curr[0];
+
+  // Have different types
+  if (
+    typeof prevElement !== typeof currElement
+    || typeof prevElement.type !== typeof currElement.type
+  ) {
+    return { [pointerStr]: ['node_replaced'] };
+  }
+
+  // Both same type 👇
+
+  // If both primitive
+  if (
+    !isNonPrimitiveElement(prevElement) && !isNonPrimitiveElement(currElement)
+  ) {
+    if (prevElement !== currElement) {
+      return { [pointerStr]: ['node_innerTextUpdate', currElement] };
+    }
+
+    // no change
+    return {};
+  }
+
+  const changedProps = {};
+  // not function
+  if (typeof prevElement.type !== 'function') {
+    // Compare props
+    const keys = Array.from(new Set([
+      ...Object.keys(prevElement.props),
+      ...Object.keys(currElement.props),
+    ]));
+    for (var index = 0; index < keys.length; index++) {
+      const key = keys[index];
+      if (key === 'children') {
+        continue;
+      }
+
+      // seperating this case just in case we may wanna delete the prop directly
+      if (!(key in currElement.props)) {
+        changedProps[key] = ['removed'];
+        continue;
+      }
+
+      if (currElement.props[key] !== prevElement.props[key]) {
+        changedProps[key] = ['updated', currElement.props[key]];
+      }
+    }
+  }
+
+  let diff = {};
+  // conditional case to keep output clean
+  if (Object.keys(changedProps).length > 0) {
+    diff[pointerStr] = ['props', changedProps];
+  }
+
+  // Recursive into children
+  const prevChildren = prev.slice(1);
+  const currChildren = curr.slice(1);
+  const maxIndex = Math.max(prevChildren.length, currChildren.length);
+  for (let index = 0; index < maxIndex; index++) {
+    const res = compareVDOMElement(prevChildren[index], currChildren[index], [...pointer, index + 1]);
+    if (res) {
+      diff = { ...diff, ...res };
+    }
+  }
+
+  return diff;
+};
+
+const getVDOMDiff = (VDOM) => {
+  return compareVDOMElement(VDOM.previous[0], VDOM.current[0]);
+};
+
 export const startRenderSubscription = (element, updateCallback) => {
   let vdom = {
     previous: [],
@@ -164,6 +257,9 @@ export const startRenderSubscription = (element, updateCallback) => {
   };
   const update = (hooks) => {
     const dom = rootRender(element, hooks, vdom);
+    // console.log('vdom.current: ', vdom.current);
+    const _diff = getVDOMDiff(vdom);
+    // console.log('_diff: ', _diff);
 
     vdom.previous = vdom.current;
     vdom.current = [];
