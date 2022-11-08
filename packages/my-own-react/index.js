@@ -82,12 +82,15 @@ const renderComponentElement = (element, VDOM, VDOMPointer, hooks) => {
   return { props, type };
 }
 
-const renderPrimitive = primitiveType => primitiveType;
+const renderPrimitive = (primitiveType, VDOM, VDOMPointer) => {
+  setCurrentVDOMElement(VDOMPointer, [primitiveType], VDOM);
+  return primitiveType;
+};
 
 const render = (element, VDOM, VDOMPointer, hooks) =>
   isNonPrimitiveElement(element) ?
     renderComponentElement(element, VDOM, VDOMPointer, hooks) :
-    renderPrimitive(element);
+    renderPrimitive(element, VDOM, VDOMPointer);
 
 const rootRender = (element, hooks, vdom) => {
   let dom = render(element, vdom, [0], hooks);
