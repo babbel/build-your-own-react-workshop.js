@@ -250,6 +250,24 @@ const getVDOMDiff = (VDOM) => {
   return compareVDOMElement(VDOM.previous[0], VDOM.current[0]);
 };
 
+const getDOMPointerFromVDOMPointer = (VDOM, VDOMPointer) => {
+  const DOMPointer = [0];
+
+  VDOMPointer.split(',').slice(1).reduce((tree, index) => {
+    const notRenderedElementCount = tree.filter(el => el[0] === false).length;
+    const remaininIndex = index - notRenderedElementCount;
+    const normalizedIndex = remaininIndex - 1;
+
+    if (typeof tree[0].type !== 'function') {
+      DOMPointer.push(normalizedIndex);
+    }
+
+    return tree[index];
+  }, VDOM.current[0]);
+
+  return DOMPointer;
+}
+
 export const startRenderSubscription = (element, updateCallback) => {
   let vdom = {
     previous: [],
@@ -260,6 +278,12 @@ export const startRenderSubscription = (element, updateCallback) => {
     // console.log('vdom.current: ', vdom.current);
     const _diff = getVDOMDiff(vdom);
     // console.log('_diff: ', _diff);
+
+    const diff = Object.keys(_diff).reduce((d, key) => {
+      d[getDOMPointerFromVDOMPointer(vdom, key)] = _diff[key];
+      return d;
+    }, {});
+    // console.log('diff: ', diff);
 
     vdom.previous = vdom.current;
     vdom.current = [];
