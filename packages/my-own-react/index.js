@@ -94,8 +94,6 @@ const render = (element, VDOM, VDOMPointer, hooks) =>
 
 const rootRender = (element, hooks, vdom) => {
   let dom = render(element, vdom, [0], hooks);
-  vdom.previous = vdom.current;
-  vdom.current = [];
   return dom;
 };
 
@@ -166,6 +164,10 @@ export const startRenderSubscription = (element, updateCallback) => {
   };
   const update = (hooks) => {
     const dom = rootRender(element, hooks, vdom);
+
+    vdom.previous = vdom.current;
+    vdom.current = [];
+
     updateCallback(dom);
   };
   const hooks = createHooks(update);
