@@ -104,12 +104,11 @@ let globalHooksReplacer = {};
 export const useState = (...args) => globalHooksReplacer.useState(...args);
 
 const isStatesDiffer = (prev, next) => {
-  console.log({prev, next})
   if (typeof next === 'object') {
-    return JSON.stringify(prev) !== JSON.stringify(next)
+    return JSON.stringify(prev) !== JSON.stringify(next);
   }
 
-  return prev !== next
+  return prev !== next;
 }
 
 const makeMakeUseState = (onUpdate, hooksMap) => (VDOMPointer, isFirstRender) => {
@@ -126,10 +125,12 @@ const makeMakeUseState = (onUpdate, hooksMap) => (VDOMPointer, isFirstRender) =>
     }
     const setState = (newStateOrCb) => {
       const newStateFn = typeof newStateOrCb === 'function' ? newStateOrCb : () => newStateOrCb;
-      const shouldUpdateState = isStatesDiffer(hooksMap[VDOMPointer].state[stateIndex], newStateFn(hooksMap[VDOMPointer].state[stateIndex]))
-      console.log({shouldUpdateState})
+      const prevState = hooksMap[VDOMPointer].state[stateIndex];
+      const currState = newStateFn(hooksMap[VDOMPointer].state[stateIndex]);
+      const shouldUpdateState = isStatesDiffer(prevState, currState);
+
       if (shouldUpdateState) {
-        hooksMap[VDOMPointer].state[stateIndex] = newStateFn(hooksMap[VDOMPointer].state[stateIndex]);
+        hooksMap[VDOMPointer].state[stateIndex] = currState;
         onUpdate();
       }
     };
