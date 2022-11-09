@@ -44,17 +44,17 @@ const booleanProps = ['disabled'];
 const renderComponentElementToHtml = ({ props: { children, ...props }, type }) => {
   const domElement = document.createElement(type);
   Object.entries(props)
-  .map(([key, value]) => transformPropToDomProp({ key, value }))
-  .forEach(({key, value}) => {
-    if (eventHandlersProps.includes(key)) {
-      addEventHandler(domElement, { key, value });
-      return;
-    }
-    if (booleanProps.includes(key) && !value) {
-      return;
-    }
-    domElement.setAttribute(key, value);
-  });
+    .map(([key, value]) => transformPropToDomProp({ key, value }))
+    .forEach(({ key, value }) => {
+      if (eventHandlersProps.includes(key)) {
+        addEventHandler(domElement, { key, value });
+        return;
+      }
+      if (booleanProps.includes(key) && !value) {
+        return;
+      }
+      domElement.setAttribute(key, value);
+    });
   if (children) {
     const childrenAsDomElement = children.map(child => renderElementToHtml(child));
     childrenAsDomElement.forEach(childElement => {
