@@ -82,11 +82,25 @@ const renderPrimitiveToHtml = primitiveType => {
 
 const renderElementToHtml = element => isNonPrimitiveElement(element) ? renderComponentElementToHtml(element) : renderPrimitiveToHtml(element);
 
+// TODO :: think about the first render
+const getActualRenderedElementByDOMPointer = (root, domPointer) => {
+  return domPointer.reduce((elementTree, childIndex) => {
+    return elementTree.children[childIndex];
+  }, root);
+};
+
 const createRoot = (rootElement) => ({
   rootElement,
   render: (rootChild) => {
     let lastChild;
-    startRenderSubscription(rootChild, rootChildDom => {
+    startRenderSubscription(rootChild, (rootChildDom, diff) => {
+      // to be able to test getElementByDOMPointer func
+      const domElements = Object.keys(diff).map((vdomPointer) => {
+        const { domPointer } = diff[vdomPointer];
+        return getActualRenderedElementByDOMPointer(rootElement, domPointer);
+      });
+      console.log('domElements: ', domElements);
+
       const rootChildAsHTML = renderElementToHtml(rootChildDom);
       if (!lastChild) {
         rootElement.appendChild(rootChildAsHTML);
