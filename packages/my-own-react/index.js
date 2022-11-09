@@ -254,7 +254,7 @@ const getDOMPointerFromVDOMPointer = (VDOM, VDOMPointer) => {
   const DOMPointer = [0];
 
   VDOMPointer.split(',').slice(1).reduce((tree, index) => {
-    const notRenderedElementCount = tree.filter(el => el[0] === false).length;
+    const notRenderedElementCount = tree.slice(0, index).filter(el => el[0] === false).length;
     const remaininIndex = index - notRenderedElementCount;
     const normalizedIndex = remaininIndex - 1;
 
