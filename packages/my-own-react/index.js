@@ -280,7 +280,7 @@ export const startRenderSubscription = (element, updateCallback) => {
     // console.log('_diff: ', _diff);
 
     const diff = Object.keys(_diff).reduce((d, key) => {
-      d[getDOMPointerFromVDOMPointer(vdom, key)] = _diff[key];
+      d[key] = { domPointer: getDOMPointerFromVDOMPointer(vdom, key), diff: _diff[key] };
       return d;
     }, {});
     // console.log('diff: ', diff);
@@ -288,7 +288,7 @@ export const startRenderSubscription = (element, updateCallback) => {
     vdom.previous = vdom.current;
     vdom.current = [];
 
-    updateCallback(dom);
+    updateCallback(dom, diff);
   };
   const hooks = createHooks(update);
   update(hooks);
