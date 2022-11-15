@@ -5,7 +5,9 @@ export { DOMHandlers } from './dom-handlers';
 export default React;
 
 export const createElement = tapFn('createElement', React.createElement);
-export const useState = (initialState) => [initialState, () => {}];
+export const useState = (initialState) => [typeof initialState === 'function' ? initialState() : initialState, () => {}];
+
+export const useEffect = () => {};
 
 export const {
   __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED,
@@ -47,7 +49,7 @@ export const {
   useContext,
   useDebugValue,
   useDeferredValue,
-  useEffect,
+  // useEffect,
   experimental_useEvent,
   useImperativeHandle,
   useInsertionEffect,
