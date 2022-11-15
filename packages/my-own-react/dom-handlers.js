@@ -26,7 +26,8 @@ const isNonPrimitiveElement = (element) => typeof element === 'object' && elemen
 
 const renderComponentElementToHtml = ({ props: { children, ...props }, type }) => {
   if (typeof type === 'function') {
-    const result = type({ children, ...props });
+    const FunctionComponent = type;
+    const result = FunctionComponent({ children, ...props });
     return renderElementToHtml(result);
   }
   const domElement = document.createElement(type);
