@@ -54,6 +54,8 @@ const renderComponentElementToHtml = ({ props: { children, ...props }, type }) =
       addEventHandler(domElement, { key, value });
       return;
     }
+    // Boolean props in the browser don't understand `false` as a value, so
+    // for example disabled="false" technically makes the `disabled` property true 💀 
     if (booleanProps.includes(key) && !value) {
       return;
     }
