@@ -5,7 +5,9 @@ export { DOMHandlers } from './dom-handlers';
 export default React;
 
 export const createElement = tapFn('createElement', React.createElement);
-// export const useState = (initialState) => [initialState, () => {}];
+// export const useState = (initialState) => [typeof initialState === 'function' ? initialState() : initialState, () => {}];
+
+export const useEffect = () => {};
 
 /*
 
@@ -109,11 +111,11 @@ const makeMakeUseState = (onUpdate, hooksMap) => (VDOMPointer, isFirstRender) =>
   if (isFirstRender) {
     hooksMapPointer.state = [];
   }
-  return (initialValue) => {
+  return (initialState) => {
     const stateIndex = stateIndexRef.current;
     stateIndexRef.current += 1; 
     if (isFirstRender) {
-      hooksMapPointer.state[stateIndex] = initialValue;
+      hooksMapPointer.state[stateIndex] = typeof initialState === 'function' ? initialState() : initialState;
     }
     const setState = (newStateOrCb) => {
       const newStateFn = typeof newStateOrCb === 'function' ? newStateOrCb : () => newStateOrCb;
@@ -195,7 +197,7 @@ export const {
   useContext,
   useDebugValue,
   useDeferredValue,
-  useEffect,
+  // useEffect,
   experimental_useEvent,
   useImperativeHandle,
   useInsertionEffect,

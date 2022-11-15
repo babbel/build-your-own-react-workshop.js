@@ -5,7 +5,9 @@ const jsStyleToCSSStyle = (styleObject) => {
   const declaration = document.createElement('span').style;
   Object.entries(styleObject).forEach(([key, value]) => {
     // Fun fact: this doesn't take care of converting unitless to unit-based values
-    // e.g. height: 100 becomes height: 100px in React, but not with this
+    // e.g. height: 100 becomes height: 100px in React, but not with this. Instead,
+    // we are throwing errors for the key-value pairs that can't be directly used
+    // as a CSS property and value.
     declaration[key] = value;
     if (declaration[key] === '' && value !== '') {
       throw new Error(`Invalid ${key}:${value} CSS`);
