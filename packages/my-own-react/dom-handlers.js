@@ -35,6 +35,8 @@ const addEventHandler = (domElement, { key, value }) => {
     case 'onClick':
       return domElement.addEventListener('click', value);
     case 'onChange':
+      // for the `change` event to trigger, the user is required to leave the field and come back
+      // so it seems like React decided to use the `input` event under the hood
       return domElement.addEventListener('input', value);
     case 'onSubmit':
       return domElement.addEventListener('submit', value);
