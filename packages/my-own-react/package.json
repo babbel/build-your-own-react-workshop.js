@@ -2,8 +2,7 @@
   "name": "my-own-react",
   "version": "1.0.0",
   "description": "Your very own React.js library!",
-  "main": "index.mjs",
-  "type": "module",
+  "main": "index.js",
   "scripts": {},
   "repository": {
     "type": "git",
@@ -14,5 +13,15 @@
   "bugs": {
     "url": "https://github.com/babbel/build-your-own-react-workshop.js/issues"
   },
-  "homepage": "https://github.com/babbel/build-your-own-react-workshop.js#readme"
+  "homepage": "https://github.com/babbel/build-your-own-react-workshop.js#readme",
+  "dependencies": {
+    "react": "^18.2.0"
+  },
+  "exports": {
+    ".": {
+      "default": "./index.js"
+    },
+    "./jsx-runtime": "./jsx-runtime",
+    "./jsx-dev-runtime": "./jsx-dev-runtime"
+  }
 }
