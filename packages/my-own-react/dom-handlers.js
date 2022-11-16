@@ -1,3 +1,5 @@
+import { startRenderSubscription } from '.';
+
 const jsStyleToCSSStyle = (styleObject) => {
   // const declaration = new CSSStyleDeclaration();
   const declaration = document.createElement('span').style;
@@ -26,34 +28,59 @@ const transformPropToDomProp = (prop) => {
 
 const isNonPrimitiveElement = (element) => typeof element === 'object' && element.type;
 
-const renderComponentElementToHtml = ({ props: { children, ...props }, type }) => {
-  if (typeof type === 'function') {
-    const FunctionComponent = type;
-    const result = FunctionComponent({ children, ...props });
-    return renderElementToHtml(result);
+const eventHandlersProps = ['onClick', 'onChange', 'onSubmit'];
+
+const addEventHandler = (domElement, { key, value }) => {
+  switch (key) {
+    case 'onClick':
+      return domElement.addEventListener('click', value);
+    case 'onChange':
+      // for the `change` event to trigger, the user is required to leave the field and come back
+      // so it seems like React decided to use the `input` event under the hood
+      return domElement.addEventListener('input', value);
+    case 'onSubmit':
+      return domElement.addEventListener('submit', value);
   }
+}
+
+const booleanProps = ['disabled'];
+
+const renderComponentElementToHtml = ({ props: { children, ...props }, type }) => {
   const domElement = document.createElement(type);
-  const childrenArray = Array.isArray(children) ? children : [children];
-  const childrenAsDomElement = childrenArray.map(child => renderElementToHtml(child));
   Object.entries(props)
-    .map(([key, value]) => transformPropToDomProp({ key, value }))
-    .forEach(({key, value}) => {
-      domElement.setAttribute(key, value);
-    });
-  childrenAsDomElement.forEach(childElement => {
-    if (childElement) {
-      domElement.appendChild(childElement);
+  .map(([key, value]) => transformPropToDomProp({ key, value }))
+  .forEach(({key, value}) => {
+    if (eventHandlersProps.includes(key)) {
+      addEventHandler(domElement, { key, value });
+      return;
     }
+    // Boolean props in the browser don't understand `false` as a value, so
+    // for example disabled="false" technically makes the `disabled` property true 💀 
+    if (booleanProps.includes(key) && !value) {
+      return;
+    }
+    domElement.setAttribute(key, value);
   });
+  if (children) {
+    const childrenAsDomElement = children.map(child => renderElementToHtml(child));
+    childrenAsDomElement.forEach(childElement => {
+      if (childElement) {
+        domElement.appendChild(childElement);
+      }
+    });
+  }
   return domElement;
 }
 
 const renderPrimitiveToHtml = primitiveType => {
   switch (typeof primitiveType) {
     case 'string':
+    case 'number':
       return document.createTextNode(primitiveType);
     case 'undefined':
       return;
+    case 'boolean':
+      return primitiveType ? renderPrimitiveToHtml('true') : undefined;
     default:
       throw new Error(`Type ${primitiveType} is not a known renderable type.`);
   }
@@ -64,8 +91,16 @@ const renderElementToHtml = element => isNonPrimitiveElement(element) ? renderCo
 const createRoot = (rootElement) => ({
   rootElement,
   render: (rootChild) => {
-    const rootChildAsHTML = renderElementToHtml(rootChild);
-    rootElement.appendChild(rootChildAsHTML);
+    let lastChild;
+    startRenderSubscription(rootChild, rootChildDom => {
+      const rootChildAsHTML = renderElementToHtml(rootChildDom);
+      if (!lastChild) {
+        rootElement.appendChild(rootChildAsHTML);
+      } else {
+        rootElement.replaceChild(rootChildAsHTML, lastChild);
+      }
+      lastChild = rootChildAsHTML;
+    });
   }
 });
 

@@ -13,12 +13,10 @@ const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
     <App />
-    <div className="test" style={{ backgroundColor: 'red', height: 100, color: 'white' }}>
-      <span>Hello world!</span>
-    </div>
   </React.StrictMode>
 );
 */
+
 
 const root = DOMHandlers.createRoot(document.getElementById('root'));
 root.render(<App />);
