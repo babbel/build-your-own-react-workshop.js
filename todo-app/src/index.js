@@ -59,6 +59,11 @@ root.render(<div className="test" aria-hidden style={{ backgroundColor: 'red', h
   <span>Hello Test!</span>
 </div>);
 
+const root = DOMHandlers.createRoot(document.getElementById('root'));
+root.render(<div className="test" aria-hidden style={{ backgroundColor: 'red', height: '100px', color: 'white' }}>
+  Hello Test!
+</div>);
+
   const root = DOMHandlers.createRoot(document.getElementById('root'));
 root.render(<div className="test" aria-hidden style={{ backgroundColor: 're', height: '100px', color: 'white' }}></div>);
 
@@ -70,7 +75,7 @@ root.render(<div className="test" aria-hidden style={{ backgroundColor: 'red', h
 root.render(<div className="test" aria-hidden></div>);
 
   const root = DOMHandlers.createRoot(document.getElementById('root'));
-root.render(<div aria-hidden></div>);
+root.render(<div id="test"></div>);
 
   const root = DOMHandlers.createRoot(document.getElementById('root'));
 root.render(<div></div>);

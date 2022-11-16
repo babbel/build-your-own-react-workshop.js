@@ -16,7 +16,7 @@ import './AddItem.css';
 
  return (
     <form className='addSection' onSubmit={handleOnAdd}>
-        <label className='inputLabel' for='itemInput'>Add an item to your list</label>
+        <label className='inputLabel' htmlFor='itemInput'>Add an item to your list</label>
         <input className='itemInput' onChange={handleInputChange} value={item} name='itemInput' placeholder='Add something you need to do' />
         <button className='addButton' type='submit' disabled={!item}>Add!</button>
     </form>
