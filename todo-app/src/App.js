@@ -1,5 +1,5 @@
-import { useState } from 'react';
-// import { useLocalStorage } from './hooks/useStorageValue';
+import { useEffect, useState } from 'react';
+import { useLocalStorage } from './hooks/useStorageValue';
 import AddItem from './components/AddItem';
 import ToDos from './components/ToDos';
 import './App.css';
@@ -27,11 +27,19 @@ function Counter() {
   </div>
 }
 
+function ComponentWithEffect({ titleIndex }) {
+  useEffect(() => {
+    console.log('I update when titleIndex is changed');
+    console.log('Closed around titleIndex', titleIndex);
+    return () => console.log('titleIndex effect clean up');
+  }, [titleIndex]);
+  return titleIndex;
+}
+
 function App() {
-  const [items, setItems] = useState(['Do Me!']);
-  // const [items, setItems] = useLocalStorage('todoItems', [])
+  const [items, setItems] = useLocalStorage('todoItems', []);
   const [titleIndex, setTitleIndex] = useState(0);
-  const [titles, setTitles] = useState(possibleTitles)
+  const [titles, setTitles] = useState(possibleTitles);
 
   const deleteItem = (item) => {
     setItems(existingItems => existingItems.filter(existingItem => existingItem !== item))
@@ -40,6 +48,8 @@ function App() {
   const addItem = (item) => {
     setItems(items => [item, ...items])
   }
+
+
 
   return (
     <div className="App">
@@ -59,7 +69,8 @@ function App() {
         {(titleIndex % 2 === 0) && <StaticStateComponent text="StaticStateComponent" />}
         <StaticStateComponent text="StaticStateComponent2" />
         {titleIndex % 3 !== 0 && <Counter />}
-        <button onClick={() => setTitleIndex(current => current)}>Next title</button>
+        {titleIndex % 3 !== 0 && <ComponentWithEffect titleIndex={titleIndex} />}
+        <button onClick={() => setTitleIndex(current => (current + 1) % possibleTitles.length )}>Next title</button>
         <AddItem onAddItem={addItem} />
         <ToDos items={items} deleteItem={deleteItem} />
       </div>

@@ -5,7 +5,9 @@ const jsStyleToCSSStyle = (styleObject) => {
   const declaration = document.createElement('span').style;
   Object.entries(styleObject).forEach(([key, value]) => {
     // Fun fact: this doesn't take care of converting unitless to unit-based values
-    // e.g. height: 100 becomes height: 100px in React, but not with this
+    // e.g. height: 100 becomes height: 100px in React, but not with this. Instead,
+    // we are throwing errors for the key-value pairs that can't be directly used
+    // as a CSS property and value.
     declaration[key] = value;
     if (declaration[key] === '' && value !== '') {
       throw new Error(`Invalid ${key}:${value} CSS`);
@@ -33,6 +35,8 @@ const addEventHandler = (domElement, { key, value }) => {
     case 'onClick':
       return domElement.addEventListener('click', value);
     case 'onChange':
+      // for the `change` event to trigger, the user is required to leave the field and come back
+      // so it seems like React decided to use the `input` event under the hood
       return domElement.addEventListener('input', value);
     case 'onSubmit':
       return domElement.addEventListener('submit', value);
@@ -50,6 +54,8 @@ const renderComponentElementToHtml = ({ props: { children, ...props }, type }) =
         addEventHandler(domElement, { key, value });
         return;
       }
+      // Boolean props in the browser don't understand `false` as a value, so
+      // for example disabled="false" technically makes the `disabled` property true 💀 
       if (booleanProps.includes(key) && !value) {
         return;
       }

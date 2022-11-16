@@ -5,7 +5,8 @@ export { DOMHandlers } from './dom-handlers';
 export default React;
 
 export const createElement = tapFn('createElement', React.createElement);
-// export const useState = (initialState) => [initialState, () => {}];
+// export const useState = (initialState) => [typeof initialState === 'function' ? initialState() : initialState, () => {}];
+// export const useEffect = () => {};
 
 /*
 
@@ -21,69 +22,94 @@ Given the DOM:
   <button>Test</button>
 </div>
 
-And a structure where we represent an element and its children as a tuple, for example
-const strongVDOM = [strong, ['yo']];
-
-Then we can have more children, for example:
-const spanVDOM = [span, strongVDOM], ['Hello World!']];
-And if we make it altogether
-const spanVDOM = [span, [strong, ['yo']]], ['Hello World!']];
+And a structure where we represent an element and its rendered children as a structure with an element and renderedChildren, for example
+const VDOMforStrong = { element: { type: strong, props: {}}, renderedChildren: [{ element: 'yo' }]];
 
 So we get the full picture of the DOM above as the following VDOM representation:
-const VDOM = [
-  [div,
-    [span,
-      [strong,
-        ['yo']
-      ],
-      ['Hello world!']
-    ],
-    [button,
-      ['Test']
-    ]
-  ]
-]
+const VDOM = {
+  element: { type: div, props: {}},
+  renderedChildren: [
+    {
+      element: { type: span, props: {}},
+      renderedChildren: [
+        {
+          element: { type: strong, props: {}},
+          renderedChildren: [{ element: 'yo' }]
+        },
+        {
+          element: 'Hello world!',
+        }
+      ]
+    }, {
+      element: { type: button, props: {}},
+      renderedChildren: [{ element: 'Test' }],
+    }
+}
 
+We can then create "pointer"s to access specific children based on their location in the tree, for example to access "Hello world!",
+we need to dig into the first element's children picking the first child "span", then pick the second child from that element which is "Hello world!". 
 // So a pointer to it can look like:
-const pointerToHelloWorld = [0, 1, 2];
+const pointerToHelloWorld = [0, 1];
 const element = getVDOMElement(pointerToHelloWorld, VDOM); // [`Hello world!`]
-And you access the element itself by extracting the first element in the tuple, e.g.
-const [button] = getVDOMElement([0, 2]], VDOM); // button
+And you access the element itself by extracting taking the element from it, e.g.
+const { element: button } = getVDOMElement([1]], VDOM); // button
 */
 
 
 export const isNonPrimitiveElement = (element) => typeof element === 'object' && element.type;
 
-const getVDOMElement = (pointer, VDOM) => pointer.reduce((targetElement, currentIndex) => (targetElement[currentIndex] || []), VDOM);
+const getVDOMElement = (pointer, VDOM) => pointer.reduce(
+  (targetElement, currentIndex) => targetElement ? (targetElement.renderedChildren || [])[currentIndex] : targetElement,
+  VDOM
+);
 
 const setCurrentVDOMElement = (pointer, element, VDOM) => {
-  const pointerToCurrent = getVDOMElement(pointer.slice(0, -1), VDOM.current);
-  pointerToCurrent[pointer[pointer.length - 1]] = element;
+  if (pointer.length === 0) {
+    VDOM.current = element;
+    return;
+  }
+  const pointerToParent = getVDOMElement(pointer.slice(0, -1), VDOM.current);
+  const currentChildIndex = pointer[pointer.length - 1];
+  pointerToParent.renderedChildren[currentChildIndex] = element;
+};
+
+const createVDOMElement = (element, renderedChildren = []) => ({
+  element,
+  renderedChildren,
+});
+
+const vdomPointerKeyToVDOMPointerArray = (pointerAsString) => {
+  // The empty array ends up with an empty string, so this needs extra care when transforming
+  if (pointerAsString === '') {
+    return [];
+  }
+  // All the others end up split by `,` so we can split them back and transform the string to a number
+  return pointerAsString.split(',').map(s => parseInt(s));
 };
 
 const renderComponentElement = (element, VDOM, VDOMPointer, hooks) => {
   const { props: { children, ...props }, type } = element;
-  const [previousDOMElement] = getVDOMElement(VDOMPointer, VDOM.previous);
+  const previousDOMElement = (getVDOMElement(VDOMPointer, VDOM.previous) || {}).element;
   const isFirstRender = previousDOMElement === undefined || previousDOMElement.type !== element.type;
   if (typeof type === 'function') {
     hooks.registerHooks(VDOMPointer, isFirstRender);
     const renderedElement = type({ children, ...props });
-    setCurrentVDOMElement(VDOMPointer, [element], VDOM);
-    const renderedElementDOM = render(renderedElement, VDOM, [...VDOMPointer, 1], hooks);
+    setCurrentVDOMElement(VDOMPointer, createVDOMElement(element), VDOM);
+    const renderedElementDOM = render(renderedElement, VDOM, [...VDOMPointer, 0], hooks);
     return renderedElementDOM;
   }
   if (children) {
     const childrenArray = Array.isArray(children) ? children : [children];
-    setCurrentVDOMElement(VDOMPointer, [element], VDOM);
-    const renderedChildren = childrenArray.map((child, index) => render(child, VDOM, [...VDOMPointer, index + 1], hooks));
+    setCurrentVDOMElement(VDOMPointer, createVDOMElement(element), VDOM);
+    const renderedChildren = childrenArray.map((child, index) => render(child, VDOM, [...VDOMPointer, index], hooks));
     return { props: { children: renderedChildren, ...props }, type };
   }
-  setCurrentVDOMElement(VDOMPointer, [element], VDOM);
+  setCurrentVDOMElement(VDOMPointer, createVDOMElement(element), VDOM);
   return { props, type };
 }
 
 const renderPrimitive = (primitiveType, VDOM, VDOMPointer) => {
-  setCurrentVDOMElement(VDOMPointer, [primitiveType], VDOM);
+  setCurrentVDOMElement(VDOMPointer, createVDOMElement(primitiveType), VDOM);
   return primitiveType;
 };
 
@@ -93,7 +119,8 @@ const render = (element, VDOM, VDOMPointer, hooks) =>
     renderPrimitive(element, VDOM, VDOMPointer);
 
 const rootRender = (element, hooks, vdom) => {
-  let dom = render(element, vdom, [0], hooks);
+  let dom = render(element, vdom, [], hooks);
+  hooks.cleanHooks((VDOMPointer) => getVDOMElement(VDOMPointer, vdom.current) !== undefined);
   return dom;
 };
 
@@ -103,6 +130,7 @@ const rootRender = (element, hooks, vdom) => {
 let globalHooksReplacer = {};
 
 export const useState = (...args) => globalHooksReplacer.useState(...args);
+export const useEffect = (...args) => globalHooksReplacer.useEffect(...args);
 
 const isStatesDiffer = (prev, next) => {
   if (typeof next === 'object') {
@@ -118,46 +146,105 @@ const makeMakeUseState = (onUpdate, hooksMap) => (VDOMPointer, isFirstRender) =>
   if (isFirstRender) {
     hooksMapPointer.state = [];
   }
-  return (initialValue) => {
+  return (initialState) => {
     const stateIndex = stateIndexRef.current;
     stateIndexRef.current += 1;
     if (isFirstRender) {
-      hooksMapPointer.state[stateIndex] = initialValue;
-    }
-    const setState = (newStateOrCb) => {
-      const newStateFn = typeof newStateOrCb === 'function' ? newStateOrCb : () => newStateOrCb;
-      const prevState = hooksMap[VDOMPointer].state[stateIndex];
-      const currState = newStateFn(hooksMap[VDOMPointer].state[stateIndex]);
-      const shouldUpdateState = isStatesDiffer(prevState, currState);
+      const computedInitialState = typeof initialState === 'function' ? initialState() : initialState;
+      const setState = (newStateOrCb) => {
+        const newStateFn = typeof newStateOrCb === 'function' ? newStateOrCb : () => newStateOrCb;
+        const ownState = hooksMapPointer.state[stateIndex];
+        const previousState = ownState[0];
+        const currentState = newStateFn(previousState);
+        const shouldUpdateState = isStatesDiffer(previousState, currentState);
 
-      if (shouldUpdateState) {
-        hooksMap[VDOMPointer].state[stateIndex] = currState;
-        onUpdate();
-      }
-    };
-    return [hooksMapPointer.state[stateIndex], setState];
+        if (shouldUpdateState) {
+          ownState[0] = currentState;
+          onUpdate();
+        }
+      };
+      hooksMapPointer.state[stateIndex] = [computedInitialState, setState];
+    }
+    return hooksMapPointer.state[stateIndex];
   };
 }
 
-const makeRegisterHooks = (hooksMap, makeUseState) => (VDOMPointer, isFirstRender) => {
+const areDependenciesEqual = (a, b) => Array.isArray(a) && Array.isArray(b) && a.every((element, index) => element === b[index]);
+
+const makeMakeUseEffect = (registerOnUpdatedCallback, hooksMap) => {
+  const combinedCallbackRef = { current: () => {} };
+  registerOnUpdatedCallback(() => {
+    combinedCallbackRef.current();
+    combinedCallbackRef.current = () => {};
+  });
+  const registerEffectForNextRender = (callback) => {
+    const { current } = combinedCallbackRef;
+    combinedCallbackRef.current = () => {
+      current();
+      callback();
+    };
+  };
+  return  (VDOMPointer, isFirstRender) => {
+    const effectIndexRef = { current: 0 };
+    const hooksMapPointer = hooksMap[VDOMPointer];
+    if (isFirstRender) {
+      hooksMapPointer.effect = [];
+    }
+    return (effectCallback, dependencies) => {
+      const effectIndex = effectIndexRef.current;
+      const previousEffect = hooksMapPointer.effect[effectIndex] || {};
+      const { cleanUp = (() => {})} = previousEffect;
+      effectIndexRef.current += 1;
+      if (areDependenciesEqual(previousEffect.dependencies, dependencies)) {
+        return;
+      }
+      cleanUp();
+      hooksMapPointer.effect[effectIndex] = {
+        dependencies: [...dependencies],
+        cleanUp: () => {},
+      };
+      registerEffectForNextRender(() => {
+        hooksMapPointer.effect[effectIndex].cleanUp = (effectCallback() || (() => {}));
+      });
+    };
+  }
+}
+
+const makeRegisterHooks = (hooksMap, makeUseState, makeUseEffect) => (VDOMPointer, isFirstRender) => {
   if (isFirstRender) {
     hooksMap[VDOMPointer] = {};
   }
   const useState = makeUseState(VDOMPointer, isFirstRender);
   globalHooksReplacer.useState = useState;
+  const useEffect = makeUseEffect(VDOMPointer, isFirstRender);
+  globalHooksReplacer.useEffect = useEffect;
 }
 
-const createHooks = (onUpdate) => {
+const makeCleanHooks = (hooksMap) => (isElementStillMounted) => {
+  Object.keys(hooksMap).map(
+    vdomPointerKeyToVDOMPointerArray
+  ).forEach(VDOMpointer => {
+    if (isElementStillMounted(VDOMpointer)) {
+      return;
+    }
+    const hooks = hooksMap[VDOMpointer];
+    hooks.effect.forEach((effect) => effect.cleanUp());
+    delete hooksMap[VDOMpointer];
+  });
+};
+
+const createHooks = (onUpdate, registerOnUpdatedCallback) => {
   const hooksMap = {};
   const hooks = { current: null };
   const boundOnUpdate = () => onUpdate(hooks.current);
   const makeUseState = makeMakeUseState(boundOnUpdate, hooksMap);
-  const registerHooks = makeRegisterHooks(hooksMap, makeUseState);
-  hooks.current = { registerHooks };
+  const makeUseEffect = makeMakeUseEffect(registerOnUpdatedCallback, hooksMap);
+  const registerHooks = makeRegisterHooks(hooksMap, makeUseState, makeUseEffect);
+  hooks.current = { registerHooks, cleanHooks: makeCleanHooks(hooksMap) };
   return hooks.current;
 }
 
-const compareVDOMElement = (prev, curr, pointer = [0]) => {
+const compareVDOMElement = (prev, curr, pointer = []) => {
   const pointerStr = pointer.join(',');
 
   // no change
@@ -175,13 +262,13 @@ const compareVDOMElement = (prev, curr, pointer = [0]) => {
     return { [pointerStr]: ['node_removed'] };
   }
 
-  const prevElement = prev[0];
-  const currElement = curr[0];
+  const prevElement = prev.element;
+  const currElement = curr.element;
 
   // Have different types
   if (
     typeof prevElement !== typeof currElement
-    || typeof prevElement.type !== typeof currElement.type
+    || typeof (prevElement || {}).type !== typeof (currElement || {}).type
   ) {
     return { [pointerStr]: ['node_replaced'] };
   }
@@ -233,11 +320,11 @@ const compareVDOMElement = (prev, curr, pointer = [0]) => {
   }
 
   // Recursive into children
-  const prevChildren = prev.slice(1);
-  const currChildren = curr.slice(1);
+  const prevChildren = prev.renderedChildren;
+  const currChildren = curr.renderedChildren;
   const maxIndex = Math.max(prevChildren.length, currChildren.length);
   for (let index = 0; index < maxIndex; index++) {
-    const res = compareVDOMElement(prevChildren[index], currChildren[index], [...pointer, index + 1]);
+    const res = compareVDOMElement(prevChildren[index], currChildren[index], [...pointer, index]);
     if (res) {
       diff = { ...diff, ...res };
     }
@@ -247,31 +334,36 @@ const compareVDOMElement = (prev, curr, pointer = [0]) => {
 };
 
 const getVDOMDiff = (VDOM) => {
-  return compareVDOMElement(VDOM.previous[0], VDOM.current[0]);
+  return compareVDOMElement(VDOM.previous, VDOM.current);
 };
 
 const getDOMPointerFromVDOMPointer = (VDOM, VDOMPointer) => {
   const DOMPointer = [0];
 
-  VDOMPointer.split(',').slice(1).reduce((tree, index) => {
-    const notRenderedElementCount = tree.slice(0, index).filter(el => el[0] === false).length;
-    const remaininIndex = index - notRenderedElementCount;
-    const normalizedIndex = remaininIndex - 1;
+  vdomPointerKeyToVDOMPointerArray(VDOMPointer).reduce((VDOM, index) => {
+    // TODO: this is currently broken, because this only checks for non-rendered elements in the current DOM
+    // whereas we need to also check for them in the previous DOM
+    const notRenderedElementCount = VDOM.renderedChildren.slice(0, index).filter(el => el[0] === false).length;
+    const normalizedIndex = index - notRenderedElementCount;
 
-    if (typeof tree[0].type !== 'function') {
+    if (typeof VDOM.element.type !== 'function') {
       DOMPointer.push(normalizedIndex);
     }
 
-    return tree[index];
-  }, VDOM.current[0]);
+    return VDOM.renderedChildren[index];
+  }, VDOM.current);
 
   return DOMPointer;
 }
 
 export const startRenderSubscription = (element, updateCallback) => {
   let vdom = {
-    previous: [],
-    current: [],
+    previous: {},
+    current: {},
+  };
+  let afterUpdate;
+  const registerOnUpdatedCallback = (callback) => {
+    afterUpdate = callback;
   };
   const update = (hooks) => {
     const dom = rootRender(element, hooks, vdom);
@@ -289,8 +381,9 @@ export const startRenderSubscription = (element, updateCallback) => {
     vdom.current = [];
 
     updateCallback(dom, diff);
+    afterUpdate();
   };
-  const hooks = createHooks(update);
+  const hooks = createHooks(update, registerOnUpdatedCallback);
   update(hooks);
 };
 
@@ -334,7 +427,7 @@ export const {
   useContext,
   useDebugValue,
   useDeferredValue,
-  useEffect,
+  // useEffect,
   experimental_useEvent,
   useImperativeHandle,
   useInsertionEffect,
