@@ -6,8 +6,7 @@ export default React;
 
 export const createElement = tapFn('createElement', React.createElement);
 // export const useState = (initialState) => [typeof initialState === 'function' ? initialState() : initialState, () => {}];
-
-export const useEffect = () => {};
+// export const useEffect = () => {};
 
 /*
 
@@ -80,6 +79,15 @@ const createVDOMElement = (element, renderedChildren = []) => ({
   renderedChildren,
 });
 
+const vdomPointerKeyToVDOMPointerArray = (pointerAsString) => {
+  // The empty array ends up with an empty string, so this needs extra care when transforming
+  if (pointerAsString === '') {
+    return [];
+  }
+  // All the others end up split by `,` so we can split them back and transform the string to a number
+  return pointerAsString.split(',').map(s => parseInt(s));
+};
+
 const renderComponentElement = (element, VDOM, VDOMPointer, hooks) => {
   const { props: { children, ...props }, type } = element;
   const previousDOMElement = (getVDOMElement(VDOMPointer, VDOM.previous) || {}).element;
@@ -110,8 +118,9 @@ const render = (element, VDOM, VDOMPointer, hooks) =>
 
 const rootRender = (element, hooks, vdom) => {
   let dom = render(element, vdom, [], hooks);
+  hooks.cleanHooks((VDOMPointer) => getVDOMElement(VDOMPointer, vdom.current) !== undefined);
   vdom.previous = vdom.current;
-  vdom.current = [];
+  vdom.current = {};
   return dom;
 };
 
@@ -197,6 +206,19 @@ const makeRegisterHooks = (hooksMap, makeUseState, makeUseEffect) => (VDOMPointe
   globalHooksReplacer.useEffect = useEffect;
 }
 
+const makeCleanHooks = (hooksMap) => (isElementStillMounted) => {
+  Object.keys(hooksMap).map(
+    vdomPointerKeyToVDOMPointerArray
+  ).forEach(VDOMpointer => {
+    if (isElementStillMounted(VDOMpointer)) {
+      return;
+    }
+    const hooks = hooksMap[VDOMpointer];
+    hooks.effect.forEach((effect) => effect.cleanUp());
+    delete hooksMap[VDOMpointer];
+  });
+};
+
 const createHooks = (onUpdate, registerOnUpdatedCallback) => {
   const hooksMap = {};
   const hooks = { current: null };
@@ -204,7 +226,7 @@ const createHooks = (onUpdate, registerOnUpdatedCallback) => {
   const makeUseState = makeMakeUseState(boundOnUpdate, hooksMap);
   const makeUseEffect = makeMakeUseEffect(registerOnUpdatedCallback, hooksMap);
   const registerHooks = makeRegisterHooks(hooksMap, makeUseState, makeUseEffect);
-  hooks.current = { registerHooks };
+  hooks.current = { registerHooks, cleanHooks: makeCleanHooks(hooksMap) };
   return hooks.current;
 }
 
