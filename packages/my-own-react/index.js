@@ -130,16 +130,18 @@ const makeMakeUseState = (onUpdate, hooksMap) => (VDOMPointer, isFirstRender) =>
   }
   return (initialState) => {
     const stateIndex = stateIndexRef.current;
-    stateIndexRef.current += 1; 
+    stateIndexRef.current += 1;
     if (isFirstRender) {
-      hooksMapPointer.state[stateIndex] = typeof initialState === 'function' ? initialState() : initialState;
+      const computedInitialState = typeof initialState === 'function' ? initialState() : initialState;
+      const setState = (newStateOrCb) => {
+        const newStateFn = typeof newStateOrCb === 'function' ? newStateOrCb : () => newStateOrCb;
+        const ownState = hooksMapPointer.state[stateIndex];
+        ownState[0] = newStateFn(ownState[0]);
+        onUpdate();
+      };
+      hooksMapPointer.state[stateIndex] = [computedInitialState, setState];
     }
-    const setState = (newStateOrCb) => {
-      const newStateFn = typeof newStateOrCb === 'function' ? newStateOrCb : () => newStateOrCb;
-      hooksMap[VDOMPointer].state[stateIndex] = newStateFn(hooksMap[VDOMPointer].state[stateIndex]);
-      onUpdate();
-    };
-    return [hooksMapPointer.state[stateIndex], setState];
+    return hooksMapPointer.state[stateIndex];
   };
 }
 
