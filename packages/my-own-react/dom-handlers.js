@@ -1,5 +1,6 @@
 import { startRenderSubscription } from '.';
 
+// should appear in chapter-1/step-5
 const jsStyleToCSSStyle = (styleObject) => {
   // const declaration = new CSSStyleDeclaration();
   const declaration = document.createElement('span').style;
@@ -16,20 +17,27 @@ const jsStyleToCSSStyle = (styleObject) => {
   return declaration.cssText;
 }
 
+// should appear in chapter-1/step-4
 const propToDomTransformers = {
   className: ({ value }) => ({ key: 'class', value }),
+  // should appear in chapter-1/step-5
   style: ({ key, value }) => ({ key, value: jsStyleToCSSStyle(value) }),
 };
 
+// should appear in chapter-1/step-4
 const transformPropToDomProp = (prop) => {
   const transformer = propToDomTransformers[prop.key] || (p => p);
   return transformer(prop);
 };
 
+// should appear in chapter-2/step-1
 const isNonPrimitiveElement = (element) => element.type !== 'primitive';
+// should appear in chapter-1/step-6
+// const isNonPrimitiveElement = (element) => element.type !== 'primitive';
 
+// should appear in chapter-1/step-3
 const eventHandlersProps = ['onClick', 'onChange', 'onSubmit'];
-
+// should appear in chapter-1/step-3
 const addEventHandler = (domElement, { key, value }) => {
   switch (key) {
     case 'onClick':
@@ -43,6 +51,7 @@ const addEventHandler = (domElement, { key, value }) => {
   }
 }
 
+// should appear in chapter-4/step-1
 const removeEventHandler = (domElement, { key, value }) => {
   switch (key) {
     case 'onClick':
@@ -57,9 +66,12 @@ const removeEventHandler = (domElement, { key, value }) => {
 }
 
 
+// should appear in chapter-1/step-3
 const booleanProps = ['disabled'];
 
+// should appear in chapter-1/step-3
 const applyPropToHTMLElement = (prop, element) => {
+  // should appear in chapter-1/step-4
   const domProp = transformPropToDomProp(prop);
   const { key, value } = domProp;
   if (eventHandlersProps.includes(key)) {
@@ -75,6 +87,7 @@ const applyPropToHTMLElement = (prop, element) => {
   element.setAttribute(key, value);
 }
 
+// should appear in chapter-4/step-1
 const removePropFromHTMLElement = (prop, element) => {
   const domProp = transformPropToDomProp(prop);
   if (eventHandlersProps.includes(key)) {
@@ -83,12 +96,16 @@ const removePropFromHTMLElement = (prop, element) => {
   element.removeAttribute(domProp);
 };
 
+// renderedElementsMap should appear in chapter-4/step-1
 const renderComponentElementToHtml = ({ props: { children, ...props }, type }, renderedElementsMap) => {
+  // should appear in chapter-1/step-2
   const domElement = document.createElement(type);
+  // should appear in chapter-1/step-3
   Object.entries(props)
     .forEach(([ key, value ]) => {
       applyPropToHTMLElement({ key, value }, domElement);
     });
+  // should appear in chapter-1/step-6
   if (children) {
     const childrenAsDomElement = children.map(child => renderElementToHtml(child, renderedElementsMap));
     childrenAsDomElement.forEach(childElement => {
@@ -97,9 +114,11 @@ const renderComponentElementToHtml = ({ props: { children, ...props }, type }, r
       }
     });
   }
+  // should appear in chapter-1/step-2
   return domElement;
 }
 
+// should appear in chapter-1/step-6
 const renderPrimitiveToHtml = ({ value }) => {
   switch (typeof value) {
     case 'string':
@@ -114,6 +133,7 @@ const renderPrimitiveToHtml = ({ value }) => {
   }
 }
 
+// renderedElementsMap should appear in chapter-4/step-1
 const renderElementToHtml = (element, renderedElementsMap) => {
   const renderedElement = isNonPrimitiveElement(element) ?
     renderComponentElementToHtml(element, renderedElementsMap) :
@@ -122,13 +142,7 @@ const renderElementToHtml = (element, renderedElementsMap) => {
   return renderedElement;
 };
 
-// TODO :: think about the first render
-const getActualRenderedElementByDOMPointer = (root, domPointer) => {
-  return domPointer.reduce((elementTree, childIndex) => {
-    return elementTree.children[childIndex];
-  }, root);
-};
-
+// Should appear in chapter-4/step-1
 const applyDiffItem = (VDOMPointer, [diffItemType, diffItemPayload], renderedElementsMap, dom) => {
   // node_added, node_removed, node_replaced, node_innerTextUpdate, props: removed | updated
   switch (diffItemType) {
@@ -214,6 +228,7 @@ const applyDiffItem = (VDOMPointer, [diffItemType, diffItemPayload], renderedEle
   }
 }
 
+// Should appear in chapter-4/step-1
 const applyDiff = (diff, renderedElementsMap, dom) => {
   // We need to order the diff items by their types, node_removed, node_added, node_replaced, the rest
   Object.entries(diff).forEach(([VDOMPointer, diffItem]) => applyDiffItem(VDOMPointer, diffItem, renderedElementsMap, dom));
@@ -222,27 +237,37 @@ const applyDiff = (diff, renderedElementsMap, dom) => {
 const createRoot = (rootElement) => ({
   rootElement,
   render: (rootChild) => {
+    // should appear in chapter-2/step-1
     // let lastChild;
+    // Should appear in chapter-4/step-1
     let renderedElementsMap = {};
-    console.log(rootChild);
+    // Should appear in chapter-4/step-1
     startRenderSubscription(rootChild, (rootChildDom, diff) => {
-      console.log(diff);
-      // to be able to test getElementByDOMPointer func
-      /*const domElements = Object.keys(diff).map((vdomPointer) => {
-        const { domPointer } = diff[vdomPointer];
-        return getActualRenderedElementByDOMPointer(rootElement, domPointer);
-      });
-      console.log('domElements: ', domElements);
-      */
-      // console.log(renderedElementsMap);
+    // startRenderSubscription(rootChild, (rootChildDom) => {
+      // Should appear in chapter-4/step-1
       if (Object.keys(renderedElementsMap).length === 0) {
         const rootChildAsHTML = renderElementToHtml(rootChildDom, renderedElementsMap);
         rootElement.appendChild(rootChildAsHTML);
       } else {
-        // rootElement.replaceChild(rootChildAsHTML, lastChild);
         applyDiff(diff, renderedElementsMap, rootChildDom);
       }
-      // lastChild = rootChildAsHTML;
+
+      /* version before chapter-4/step-1
+      // update should appear in chapter-2/step-1
+        if (!lastChild) {
+          const rootChildAsHTML = renderElementToHtml(rootChildDom);
+          rootElement.appendChild(rootChildAsHTML);
+        } else {
+          const rootChildAsHTML = renderElementToHtml(rootChildDom, renderedElementsMap);
+          rootElement.replaceChild(rootChildAsHTML, lastChild);
+        }
+        lastChild = rootChildAsHTML;
+      */
+     /* version before chapter-2/step-1
+     // should appear in chapter-1/step-2
+      const rootChildAsHTML = renderElementToHtml(rootChildDom);
+      rootElement.appendChild(rootChildAsHTML);
+     */
     });
   }
 });

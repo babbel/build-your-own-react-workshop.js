@@ -8,6 +8,8 @@ export const createElement = tapFn('createElement', React.createElement);
 // export const useState = (initialState) => [typeof initialState === 'function' ? initialState() : initialState, () => {}];
 // export const useEffect = () => {};
 
+
+// should appear in chapter-2/step-1
 /*
 
 VDOM with pointer idea
@@ -55,16 +57,17 @@ And you access the element itself by extracting taking the element from it, e.g.
 const { element: button } = getVDOMElement([1]], VDOM); // button
 */
 
-
+// should appear in chapter-2/step-1
 export const isNonPrimitiveElementFromJSX = (element) => typeof element === 'object' && element.type;
 export const isNonPrimitiveElementFromVDOM = (element) => element.type !== 'primitive';
 export const isNonPrimitiveElement = (element) => isNonPrimitiveElementFromJSX(element) || isNonPrimitiveElementFromVDOM(element);
 
+// should appear in chapter-2/step-1
 const getVDOMElement = (pointer, VDOM) => pointer.reduce(
   (targetElement, currentIndex) => targetElement ? (targetElement.renderedChildren || [])[currentIndex] : targetElement,
   VDOM
 );
-
+// should appear in chapter-2/step-1
 const setCurrentVDOMElement = (pointer, element, VDOM) => {
   if (pointer.length === 0) {
     VDOM.current = element;
@@ -75,11 +78,14 @@ const setCurrentVDOMElement = (pointer, element, VDOM) => {
   pointerToParent.renderedChildren[currentChildIndex] = element;
 };
 
+// should appear in chapter-2/step-1
 const createVDOMElement = (element, renderedChildren = []) => ({
   element,
   renderedChildren,
 });
 
+
+// diff should appear in chapter-3/step-2
 const vdomPointerKeyToVDOMPointerArray = (pointerAsString) => {
   // The empty array ends up with an empty string, so this needs extra care when transforming
   if (pointerAsString === '') {
@@ -89,12 +95,14 @@ const vdomPointerKeyToVDOMPointerArray = (pointerAsString) => {
   return pointerAsString.split(',').map(s => parseInt(s));
 };
 
+// should appear in chapter-2/step-1
 const renderComponentElement = (element, VDOM, VDOMPointer, hooks) => {
   const { props: { children, ...props }, type } = element;
   const previousDOMElement = (getVDOMElement(VDOMPointer, VDOM.previous) || {}).element;
   const isFirstRender = previousDOMElement === undefined || previousDOMElement.type !== element.type;
   const elementAsVDOMElement = { props, type, VDOMPointer };
   if (typeof type === 'function') {
+    // should appear in chapter-2/step-2
     hooks.registerHooks(VDOMPointer, isFirstRender);
     const renderedElement = type({ children, ...props });
     setCurrentVDOMElement(VDOMPointer, createVDOMElement(elementAsVDOMElement), VDOM);
@@ -111,19 +119,23 @@ const renderComponentElement = (element, VDOM, VDOMPointer, hooks) => {
   return elementAsVDOMElement;
 }
 
+// should appear in chapter-2/step-1
 const renderPrimitive = (primitiveType, VDOM, VDOMPointer) => {
   const elementAsVDOMElement = { value: primitiveType, type: 'primitive', VDOMPointer };
   setCurrentVDOMElement(VDOMPointer, createVDOMElement(elementAsVDOMElement), VDOM);
   return elementAsVDOMElement;
 };
 
+// should appear in chapter-2/step-1
 const render = (element, VDOM, VDOMPointer, hooks) =>
   isNonPrimitiveElementFromJSX(element) ?
     renderComponentElement(element, VDOM, VDOMPointer, hooks) :
     renderPrimitive(element, VDOM, VDOMPointer);
 
+// should appear in chapter-2/step-1
 const rootRender = (element, hooks, vdom) => {
   let dom = render(element, vdom, [], hooks);
+  // Should appear in final
   hooks.cleanHooks((VDOMPointer) => getVDOMElement(VDOMPointer, vdom.current) !== undefined);
   return dom;
 };
@@ -131,9 +143,12 @@ const rootRender = (element, hooks, vdom) => {
 
 
 // Hooks
+// should appear in chapter-2/step-2
 let globalHooksReplacer = {};
 
+// should appear in chapter-2/step-2
 export const useState = (...args) => globalHooksReplacer.useState(...args);
+// Should appear in chapter-4/step-2
 export const useEffect = (...args) => globalHooksReplacer.useEffect(...args);
 
 const isStatesDiffer = (prev, next) => {
@@ -144,19 +159,23 @@ const isStatesDiffer = (prev, next) => {
   return prev !== next;
 }
 
+// should appear in chapter-2/step-2
 const makeMakeUseState = (onUpdate, hooksMap) => (VDOMPointer, isFirstRender) => {
+  // stateIndexRef should appear in chapter-3/step-1
   let stateIndexRef = { current: 0 };
   let hooksMapPointer = hooksMap[VDOMPointer];
   if (isFirstRender) {
     hooksMapPointer.state = [];
   }
   return (initialState) => {
+    // stateIndexRef should appear in chapter-3/step-1
     const stateIndex = stateIndexRef.current;
     stateIndexRef.current += 1;
     if (isFirstRender) {
       const computedInitialState = typeof initialState === 'function' ? initialState() : initialState;
       const setState = (newStateOrCb) => {
         const newStateFn = typeof newStateOrCb === 'function' ? newStateOrCb : () => newStateOrCb;
+        // stateIndex should appear in chapter-3/step-1
         const ownState = hooksMapPointer.state[stateIndex];
         const previousState = ownState[0];
         const currentState = newStateFn(previousState);
@@ -167,14 +186,18 @@ const makeMakeUseState = (onUpdate, hooksMap) => (VDOMPointer, isFirstRender) =>
           onUpdate();
         }
       };
+      // stateIndex should appear in chapter-3/step-1
       hooksMapPointer.state[stateIndex] = [computedInitialState, setState];
     }
+    // stateIndex should appear in chapter-3/step-1
     return hooksMapPointer.state[stateIndex];
   };
 }
 
+// Should appear in chapter-4/step-2
 const areDependenciesEqual = (a, b) => Array.isArray(a) && Array.isArray(b) && a.every((element, index) => element === b[index]);
 
+// Should appear in chapter-4/step-2
 const makeMakeUseEffect = (registerOnUpdatedCallback, hooksMap) => {
   const combinedCallbackRef = { current: () => {} };
   registerOnUpdatedCallback(() => {
@@ -197,33 +220,42 @@ const makeMakeUseEffect = (registerOnUpdatedCallback, hooksMap) => {
     return (effectCallback, dependencies) => {
       const effectIndex = effectIndexRef.current;
       const previousEffect = hooksMapPointer.effect[effectIndex] || {};
+      // Should appear in final
       const { cleanUp = (() => {})} = previousEffect;
       effectIndexRef.current += 1;
       if (areDependenciesEqual(previousEffect.dependencies, dependencies)) {
         return;
       }
+      // Should appear in final
       cleanUp();
       hooksMapPointer.effect[effectIndex] = {
         dependencies: [...dependencies],
+        // Should appear in final
         cleanUp: () => {},
       };
       registerEffectForNextRender(() => {
+        // Should appear in final
         hooksMapPointer.effect[effectIndex].cleanUp = (effectCallback() || (() => {}));
+        // Should appear in chapter-4/step-2
+        // effectCallback()
       });
     };
   }
 }
 
+// interface should appear in chapter-2/step-2
 const makeRegisterHooks = (hooksMap, makeUseState, makeUseEffect) => (VDOMPointer, isFirstRender) => {
   if (isFirstRender) {
     hooksMap[VDOMPointer] = {};
   }
   const useState = makeUseState(VDOMPointer, isFirstRender);
   globalHooksReplacer.useState = useState;
+  // Should appear in chapter-4/step-2
   const useEffect = makeUseEffect(VDOMPointer, isFirstRender);
   globalHooksReplacer.useEffect = useEffect;
 }
 
+// Should appear in final
 const makeCleanHooks = (hooksMap) => (isElementStillMounted) => {
   Object.keys(hooksMap).map(
     vdomPointerKeyToVDOMPointerArray
@@ -238,17 +270,25 @@ const makeCleanHooks = (hooksMap) => (isElementStillMounted) => {
   });
 };
 
+// Should appear in chapter-4/step-2
 const createHooks = (onUpdate, registerOnUpdatedCallback) => {
+// interface should appear in chapter-2/step-1
+// const createHooks = (onUpdate) => {
+  // structure is given before but implementation should appear in chapter-2/step-2
   const hooksMap = {};
   const hooks = { current: null };
   const boundOnUpdate = () => onUpdate(hooks.current);
   const makeUseState = makeMakeUseState(boundOnUpdate, hooksMap);
+  // Should appear in chapter-4/step-2
   const makeUseEffect = makeMakeUseEffect(registerOnUpdatedCallback, hooksMap);
   const registerHooks = makeRegisterHooks(hooksMap, makeUseState, makeUseEffect);
+  // Should appear in final
   hooks.current = { registerHooks, cleanHooks: makeCleanHooks(hooksMap) };
+  // hooks.current = { registerHooks };
   return hooks.current;
 }
 
+// Should appear in chapter-3/step-2
 const compareVDOMElement = (curr, vdom, parentPointer) => {
   const prev = getVDOMElement(curr.VDOMPointer, vdom.previous);
 
@@ -343,53 +383,40 @@ const compareVDOMElement = (curr, vdom, parentPointer) => {
   return diff;
 };
 
+// Should appear in chapter-3/step-2
 const getVDOMDiff = (dom, vdom) => {
   return compareVDOMElement(dom, vdom);
 };
 
-const getDOMPointerFromVDOMPointer = (VDOM, VDOMPointer) => {
-  const DOMPointer = [0];
-
-  vdomPointerKeyToVDOMPointerArray(VDOMPointer).reduce((VDOM, index) => {
-    // TODO: this is currently broken, because this only checks for non-rendered elements in the current DOM
-    // whereas we need to also check for them in the previous DOM
-    const notRenderedElementCount = VDOM.renderedChildren.slice(0, index).filter(el => el[0] === false).length;
-    const normalizedIndex = index - notRenderedElementCount;
-
-    if (typeof VDOM.element.type !== 'function') {
-      DOMPointer.push(normalizedIndex);
-    }
-
-    return VDOM.renderedChildren[index];
-  }, VDOM.current);
-
-  return DOMPointer;
-}
-
+// interface should appear in chapter-2/step-1
 export const startRenderSubscription = (element, updateCallback) => {
   let vdom = {
     previous: {},
     current: {},
   };
+  // Should appear in chapter-4/step-2
   let afterUpdate;
+  // Should appear in chapter-4/step-2
   const registerOnUpdatedCallback = (callback) => {
     afterUpdate = callback;
   };
   const update = (hooks) => {
     const dom = rootRender(element, hooks, vdom);
-    console.log(dom);
-    // console.log('vdom.current: ', vdom.current);
+    // diff should appear in chapter-3/step-2
     const diff = getVDOMDiff(dom, vdom);
-    // console.log('_diff: ', _diff);
-    // console.log('diff: ', diff);
+
 
     vdom.previous = vdom.current;
     vdom.current = [];
 
+    // diff should appear in chapter-4/step-1
     updateCallback(dom, diff);
+    // Should appear in chapter-4/step-2
     afterUpdate();
   };
+  // Should appear in chapter-4/step-2
   const hooks = createHooks(update, registerOnUpdatedCallback);
+  // const hooks = createHooks(update);
   update(hooks);
 };
 
