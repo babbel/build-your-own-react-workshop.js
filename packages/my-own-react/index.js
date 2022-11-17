@@ -56,7 +56,9 @@ const { element: button } = getVDOMElement([1]], VDOM); // button
 */
 
 
-export const isNonPrimitiveElement = (element) => typeof element === 'object' && element.type;
+export const isNonPrimitiveElementFromJSX = (element) => typeof element === 'object' && element.type;
+export const isNonPrimitiveElementFromVDOM = (element) => element.type !== 'primitive';
+export const isNonPrimitiveElement = (element) => isNonPrimitiveElementFromJSX(element) || isNonPrimitiveElementFromVDOM(element);
 
 const getVDOMElement = (pointer, VDOM) => pointer.reduce(
   (targetElement, currentIndex) => targetElement ? (targetElement.renderedChildren || [])[currentIndex] : targetElement,
@@ -91,30 +93,32 @@ const renderComponentElement = (element, VDOM, VDOMPointer, hooks) => {
   const { props: { children, ...props }, type } = element;
   const previousDOMElement = (getVDOMElement(VDOMPointer, VDOM.previous) || {}).element;
   const isFirstRender = previousDOMElement === undefined || previousDOMElement.type !== element.type;
+  const elementAsVDOMElement = { props, type, VDOMPointer };
   if (typeof type === 'function') {
     hooks.registerHooks(VDOMPointer, isFirstRender);
     const renderedElement = type({ children, ...props });
-    setCurrentVDOMElement(VDOMPointer, createVDOMElement(element), VDOM);
+    setCurrentVDOMElement(VDOMPointer, createVDOMElement(elementAsVDOMElement), VDOM);
     const renderedElementDOM = render(renderedElement, VDOM, [...VDOMPointer, 0], hooks);
     return renderedElementDOM;
   }
-  if (children) {
+  if (typeof children !== 'undefined') {
     const childrenArray = Array.isArray(children) ? children : [children];
-    setCurrentVDOMElement(VDOMPointer, createVDOMElement(element), VDOM);
+    setCurrentVDOMElement(VDOMPointer, createVDOMElement(elementAsVDOMElement), VDOM);
     const renderedChildren = childrenArray.map((child, index) => render(child, VDOM, [...VDOMPointer, index], hooks));
-    return { props: { children: renderedChildren, ...props }, type };
+    return { ...elementAsVDOMElement, props: { children: renderedChildren, ...elementAsVDOMElement.props } };
   }
-  setCurrentVDOMElement(VDOMPointer, createVDOMElement(element), VDOM);
-  return { props, type };
+  setCurrentVDOMElement(VDOMPointer, createVDOMElement(elementAsVDOMElement), VDOM);
+  return elementAsVDOMElement;
 }
 
 const renderPrimitive = (primitiveType, VDOM, VDOMPointer) => {
-  setCurrentVDOMElement(VDOMPointer, createVDOMElement(primitiveType), VDOM);
-  return primitiveType;
+  const elementAsVDOMElement = { value: primitiveType, type: 'primitive', VDOMPointer };
+  setCurrentVDOMElement(VDOMPointer, createVDOMElement(elementAsVDOMElement), VDOM);
+  return elementAsVDOMElement;
 };
 
 const render = (element, VDOM, VDOMPointer, hooks) =>
-  isNonPrimitiveElement(element) ?
+  isNonPrimitiveElementFromJSX(element) ?
     renderComponentElement(element, VDOM, VDOMPointer, hooks) :
     renderPrimitive(element, VDOM, VDOMPointer);
 
@@ -224,6 +228,7 @@ const makeCleanHooks = (hooksMap) => (isElementStillMounted) => {
   Object.keys(hooksMap).map(
     vdomPointerKeyToVDOMPointerArray
   ).forEach(VDOMpointer => {
+    // TODO double check if this is safe as there might still be something in the VDOM at this spot
     if (isElementStillMounted(VDOMpointer)) {
       return;
     }
@@ -244,8 +249,10 @@ const createHooks = (onUpdate, registerOnUpdatedCallback) => {
   return hooks.current;
 }
 
-const compareVDOMElement = (prev, curr, pointer = []) => {
-  const pointerStr = pointer.join(',');
+const compareVDOMElement = (curr, vdom, parentPointer) => {
+  const prev = getVDOMElement(curr.VDOMPointer, vdom.previous);
+
+  const pointerStr = curr.VDOMPointer.join(',');
 
   // no change
   if (!prev && !curr) {
@@ -254,32 +261,33 @@ const compareVDOMElement = (prev, curr, pointer = []) => {
 
   // added element
   if (!prev) {
-    return { [pointerStr]: ['node_added'] };
+    return { [pointerStr]: ['node_added', { node: curr, parentPointer }] };
   }
 
+  // Hopefully this becomes redundant
   // removed element
   if (!curr) {
     return { [pointerStr]: ['node_removed'] };
   }
 
   const prevElement = prev.element;
-  const currElement = curr.element;
+  const currElement = curr;
 
   // Have different types
   if (
     typeof prevElement !== typeof currElement
     || typeof (prevElement || {}).type !== typeof (currElement || {}).type
   ) {
-    return { [pointerStr]: ['node_replaced'] };
+    return { [pointerStr]: ['node_replaced', { newNode: curr, oldNode: prevElement, parentPointer }] };
   }
 
   // Both same type 👇
 
   // If both primitive
   if (
-    !isNonPrimitiveElement(prevElement) && !isNonPrimitiveElement(currElement)
+    !isNonPrimitiveElementFromVDOM(prevElement) && !isNonPrimitiveElementFromVDOM(currElement)
   ) {
-    if (prevElement !== currElement) {
+    if (prevElement.value !== currElement.value) {
       return { [pointerStr]: ['node_innerTextUpdate', currElement] };
     }
 
@@ -288,28 +296,25 @@ const compareVDOMElement = (prev, curr, pointer = []) => {
   }
 
   const changedProps = {};
-  // not function
-  if (typeof prevElement.type !== 'function') {
-    // Compare props
-    const keys = Array.from(new Set([
-      ...Object.keys(prevElement.props),
-      ...Object.keys(currElement.props),
-    ]));
-    for (var index = 0; index < keys.length; index++) {
-      const key = keys[index];
-      if (key === 'children') {
-        continue;
-      }
+  // Compare props
+  const keys = Array.from(new Set([
+    ...Object.keys(prevElement.props),
+    ...Object.keys(currElement.props),
+  ]));
+  for (var index = 0; index < keys.length; index++) {
+    const key = keys[index];
+    if (key === 'children') {
+      continue;
+    }
 
-      // seperating this case just in case we may wanna delete the prop directly
-      if (!(key in currElement.props)) {
-        changedProps[key] = ['removed'];
-        continue;
-      }
+    // seperating this case just in case we may wanna delete the prop directly
+    if (!(key in currElement.props)) {
+      changedProps[key] = ['removed'];
+      continue;
+    }
 
-      if (currElement.props[key] !== prevElement.props[key]) {
-        changedProps[key] = ['updated', currElement.props[key]];
-      }
+    if (currElement.props[key] !== prevElement.props[key]) {
+      changedProps[key] = ['updated', { newValue: currElement.props[key], oldValue: prevElement.props[key] }];
     }
   }
 
@@ -320,11 +325,16 @@ const compareVDOMElement = (prev, curr, pointer = []) => {
   }
 
   // Recursive into children
-  const prevChildren = prev.renderedChildren;
-  const currChildren = curr.renderedChildren;
+  const prevChildren = prev.renderedChildren || [];
+  const currChildren = curr.props.children || [];
   const maxIndex = Math.max(prevChildren.length, currChildren.length);
   for (let index = 0; index < maxIndex; index++) {
-    const res = compareVDOMElement(prevChildren[index], currChildren[index], [...pointer, index]);
+    const currChild = currChildren[index];
+    if (!currChild) {
+      diff[[...curr.VDOMPointer, index]] = ['node_removed'];
+      continue;
+    }
+    const res = compareVDOMElement(currChild, vdom, curr.VDOMPointer);
     if (res) {
       diff = { ...diff, ...res };
     }
@@ -333,8 +343,8 @@ const compareVDOMElement = (prev, curr, pointer = []) => {
   return diff;
 };
 
-const getVDOMDiff = (VDOM) => {
-  return compareVDOMElement(VDOM.previous, VDOM.current);
+const getVDOMDiff = (dom, vdom) => {
+  return compareVDOMElement(dom, vdom);
 };
 
 const getDOMPointerFromVDOMPointer = (VDOM, VDOMPointer) => {
@@ -367,14 +377,10 @@ export const startRenderSubscription = (element, updateCallback) => {
   };
   const update = (hooks) => {
     const dom = rootRender(element, hooks, vdom);
+    console.log(dom);
     // console.log('vdom.current: ', vdom.current);
-    const _diff = getVDOMDiff(vdom);
+    const diff = getVDOMDiff(dom, vdom);
     // console.log('_diff: ', _diff);
-
-    const diff = Object.keys(_diff).reduce((d, key) => {
-      d[key] = { domPointer: getDOMPointerFromVDOMPointer(vdom, key), diff: _diff[key] };
-      return d;
-    }, {});
     // console.log('diff: ', diff);
 
     vdom.previous = vdom.current;
