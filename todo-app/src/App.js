@@ -15,7 +15,7 @@ function StaticStateComponent({ text }) {
 function StaticStateComponent2({ text }) {
   const [state] = useState(text);
 
-  return <div>{state}</div>;
+  return <span>{state}</span>;
 }
 
 function Counter() {
@@ -68,6 +68,7 @@ function App() {
         <button onClick={() => setTitles([...possibleTitles])}>Update Titles</button>
         {(titleIndex % 2 === 0) && <StaticStateComponent text="StaticStateComponent" />}
         <StaticStateComponent text="StaticStateComponent2" />
+        {(titleIndex % 3 === 0) ? <StaticStateComponent text="StaticStateComponent" /> : <StaticStateComponent text="StaticStateComponent2" />}
         {titleIndex % 3 !== 0 && <Counter />}
         {titleIndex % 3 !== 0 && <ComponentWithEffect titleIndex={titleIndex} />}
         <button onClick={() => setTitleIndex(current => (current + 1) % possibleTitles.length )}>Next title</button>

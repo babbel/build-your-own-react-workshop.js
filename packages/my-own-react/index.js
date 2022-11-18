@@ -292,22 +292,20 @@ const createHooks = (onUpdate, registerOnUpdatedCallback) => {
 const compareVDOMElement = (curr, vdom, parentPointer) => {
   const prev = getVDOMElement(curr.VDOMPointer, vdom.previous);
 
-  const pointerStr = curr.VDOMPointer.join(',');
-
   // no change
   if (!prev && !curr) {
-    return {};
+    return [];
   }
 
   // added element
   if (!prev) {
-    return { [pointerStr]: ['node_added', { node: curr, parentPointer }] };
+    return [{ VDOMPointer: curr.VDOMPointer, type: 'node_added', payload: { node: curr, parentPointer } }];
   }
 
   // Hopefully this becomes redundant
   // removed element
   if (!curr) {
-    return { [pointerStr]: ['node_removed'] };
+    return [{ VDOMPointer: curr.VDOMPointer, type: 'node_removed', payload: {} }];
   }
 
   const prevElement = prev.element;
@@ -318,7 +316,7 @@ const compareVDOMElement = (curr, vdom, parentPointer) => {
     typeof prevElement !== typeof currElement
     || typeof (prevElement || {}).type !== typeof (currElement || {}).type
   ) {
-    return { [pointerStr]: ['node_replaced', { newNode: curr, oldNode: prevElement, parentPointer }] };
+    return [{ VDOMPointer: curr.VDOMPointer, type: 'node_replaced', payload: { newNode: curr, oldNode: prevElement, parentPointer } }];
   }
 
   // Both same type 👇
@@ -328,11 +326,11 @@ const compareVDOMElement = (curr, vdom, parentPointer) => {
     !isNonPrimitiveElementFromVDOM(prevElement) && !isNonPrimitiveElementFromVDOM(currElement)
   ) {
     if (prevElement.value !== currElement.value) {
-      return { [pointerStr]: ['node_innerTextUpdate', currElement] };
+      return [{ VDOMPointer: curr.VDOMPointer, type: 'node_innerTextUpdate', payload: { newElement: currElement } }];
     }
 
     // no change
-    return {};
+    return [];
   }
 
   const changedProps = {};
@@ -358,10 +356,12 @@ const compareVDOMElement = (curr, vdom, parentPointer) => {
     }
   }
 
-  let diff = {};
+  let diff = [];
   // conditional case to keep output clean
   if (Object.keys(changedProps).length > 0) {
-    diff[pointerStr] = ['props', changedProps];
+    diff.push(
+      { VDOMPointer: curr.VDOMPointer, type: 'props', payload: changedProps }
+    );
   }
 
   // Recursive into children
@@ -371,12 +371,12 @@ const compareVDOMElement = (curr, vdom, parentPointer) => {
   for (let index = 0; index < maxIndex; index++) {
     const currChild = currChildren[index];
     if (!currChild) {
-      diff[[...curr.VDOMPointer, index]] = ['node_removed'];
+      diff.push({ VDOMPointer: [...curr.VDOMPointer, index], type: 'node_removed', payload: {} })
       continue;
     }
     const res = compareVDOMElement(currChild, vdom, curr.VDOMPointer);
     if (res) {
-      diff = { ...diff, ...res };
+      diff = [ ...diff, ...res ];
     }
   }
 

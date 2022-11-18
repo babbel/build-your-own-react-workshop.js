@@ -19,7 +19,6 @@ const jsStyleToCSSStyle = (styleObject) => {
 
 // should appear in chapter-1/step-4
 const propToDomTransformers = {
-  className: ({ value }) => ({ key: 'class', value }),
   // should appear in chapter-1/step-5
   style: ({ key, value }) => ({ key, value: jsStyleToCSSStyle(value) }),
 };
@@ -65,10 +64,6 @@ const removeEventHandler = (domElement, { key, value }) => {
   }
 }
 
-
-// should appear in chapter-1/step-3
-const booleanProps = ['disabled'];
-
 // should appear in chapter-1/step-3
 const applyPropToHTMLElement = (prop, element) => {
   // should appear in chapter-1/step-4
@@ -78,13 +73,8 @@ const applyPropToHTMLElement = (prop, element) => {
     addEventHandler(element, { key, value });
     return;
   }
-  // Boolean props in the browser don't understand `false` as a value, so
-  // for example disabled="false" technically makes the `disabled` property true 💀 
-  if (booleanProps.includes(key) && !value) {
-    element.removeAttribute(key);
-    return;
-  }
-  element.setAttribute(key, value);
+
+  element[key] = value;
 }
 
 // should appear in chapter-4/step-1
@@ -142,49 +132,81 @@ const renderElementToHtml = (element, renderedElementsMap) => {
   return renderedElement;
 };
 
-// Should appear in chapter-4/step-1
-const applyDiffItem = (VDOMPointer, [diffItemType, diffItemPayload], renderedElementsMap, dom) => {
-  // node_added, node_removed, node_replaced, node_innerTextUpdate, props: removed | updated
-  switch (diffItemType) {
-    case 'props':
-      Object.entries(diffItemPayload).forEach(([key, [propDiffType, { oldValue, newValue }]]) => {
-        // TODO: needs to handle prop removed
-        if (propDiffType === 'updated') {
-          if (eventHandlersProps.includes(key)) {
-            removeEventHandler(renderedElementsMap[VDOMPointer], { key, value: oldValue });
-          }
-          applyPropToHTMLElement({ key, value: newValue }, renderedElementsMap[VDOMPointer]);
-        } else if (propDiffType === 'removed') {
-          removePropFromHTMLElement({ key }, renderedElementsMap[VDOMPointer]);
-        }
-      });
-      break;
-    case 'node_removed':
-      const elementToRemove = renderedElementsMap[VDOMPointer];
-      if (elementToRemove) {
-        elementToRemove.parentNode.removeChild(elementToRemove);
-      } /* else {
-        Object.entries(renderedElementsMap).filter(([pointer]) => {
-          // for a pointer to a component at 0,1,2
-          // and rendered children 0,1,2,0 and 0,1,2,1
-          // we want to remove those children
-          return new RegExp(`${VDOMPointer},\\d+$`).test(pointer);
-        }).forEach(([_, element]) => {
-          element.parentNode.removeChild(element);
-        });
-      }*/
-      break;
-    case 'node_added':
-      // This addedNode idea is not great for now
-      // as this can be a component, which we don't know how to handle from DOM handlers
-      // so instead we probably need to find the correct children from the DOM passed by startSubscription callback
-      // similarly to the remove above.
-      const { node, parentPointer } = diffItemPayload;
-      const addedElement = renderElementToHtml(node, renderedElementsMap);
-      const insertionIndex = VDOMPointer[VDOMPointer.length - 1];
+// should appear in chapter-4/step-1
+const findByDomPointer = (dom, domPointer) => {
+  if (!dom) {
+    return;
+  }
+  if (dom.VDOMPointer === domPointer) {
+    return dom;
+  }
+  if (dom.type === 'primitive' || !dom.props.children) {
+    return;
+  }
+  return dom.props.children.reduce((foundElement, child) =>
+    foundElement ? foundElement : findByDomPointer(child, domPointer),
+    null
+  );
+}
 
+// should appear in chapter-4/step-1
+const isChildVDOMPointerOf = (childVDOMPointer, VDOMPointer) => {
+  // the root level pointer is [] and is not a child of anything
+  if (childVDOMPointer.length === 0) {
+    return false;
+  }
+  // everything is a child of the root level pointer []
+  if (VDOMPointer.length === 0) {
+    return true;
+  }
+  // for a pointer to a component at 0,1,2
+  // and rendered children 0,1,2,0 and 0,1,2,1,0
+  // we want to remove those children
+  return new RegExp(`${VDOMPointer},(\\d+,?)+$`).test(childVDOMPointer);
+};
+
+// should appear in chapter-4/step-1
+const findRenderedChildrenByVDOMPointer = (renderedElementsMap, VDOMPointer) => {
+  return Object.entries(renderedElementsMap).filter(([pointer]) => isChildVDOMPointerOf(pointer, VDOMPointer));
+};
+
+// should appear in chapter-4/step-1
+const findRootVDOMPointers = (pointers) => {
+  if (pointers.length === 0) {
+    return pointers;
+  }
+  let rootPointers = [pointers[0]];
+  for (const pointer of pointers.slice(1)) {
+    const rootPointersOfCurrent = rootPointers.filter(rootPointer => isChildVDOMPointerOf(pointer, rootPointer));
+    if (rootPointersOfCurrent.length === 0) {
+      const newRootPointers = rootPointers.filter(rootPointer => !isChildVDOMPointerOf(rootPointer, pointer));
+      rootPointers = [...newRootPointers, pointer];
+    }
+  }
+  return rootPointers;
+}
+
+// should appear in chapter-4/step-1
+const applyNodeRemoved = ({ renderedElementsMap }, { VDOMPointer }) => {
+  const elementToRemove = renderedElementsMap[VDOMPointer];
+  if (elementToRemove) {
+    elementToRemove.parentNode.removeChild(elementToRemove);
+    findRenderedChildrenByVDOMPointer(renderedElementsMap, VDOMPointer).forEach(([pointer]) => {
+      delete renderedElementsMap[pointer];
+    });
+  } else {
+    const allChildren = findRenderedChildrenByVDOMPointer(renderedElementsMap, VDOMPointer);
+    const rootVDOMPointers = findRootVDOMPointers(allChildren.map(([pointer]) => pointer));
+    rootVDOMPointers.forEach((pointer) => {
+      applyNodeRemoved({ renderedElementsMap }, { VDOMPointer: pointer });
+    });
+  }
+  delete renderedElementsMap[VDOMPointer];
+}
+
+// should appear in chapter-4/step-1
+const applyNodeAdded = ({ renderedElementsMap, dom }, { VDOMPointer, payload: { node, parentPointer } }) => {
       /*
-
         <App>
           <div>
             <Component>
@@ -211,27 +233,71 @@ const applyDiffItem = (VDOMPointer, [diffItemType, diffItemPayload], renderedEle
 
         DOM: [0, 0, 0]
       */
-      // const parentIndex = VDOMPointer.slice(0, -1);
-      // TODO: this parentIndex might not be a rendered element but a component
-      // in this case we should find the closest rendered element parent that fits
+      const addedElement = renderElementToHtml(node, renderedElementsMap);
+      // The addedElement could be a value that doesn't render to the DOM such as `false`
+      if (!addedElement) {
+        renderedElementsMap[VDOMPointer] = addedElement;
+        return;
+      }
       const parentElement = renderedElementsMap[parentPointer];
-
-
-
-      const nextSibling = parentElement.children[insertionIndex];  
+      const parentElementFromDOM = findByDomPointer(dom, parentPointer);
+      const elementRealVDOMIndex = parentElementFromDOM.props.children.findIndex(child => child.VDOMPointer === VDOMPointer);
+      let nextSiblingDOMIndex = elementRealVDOMIndex - 1;
+      let nextSibling;
+      // The next sibling could be a value that doesn't render to the DOM such as `false`
+      // so we need to continue searching for the first rendered one here
+      while (nextSiblingDOMIndex > 0 && nextSibling === undefined) {
+        const nextSiblingFromVDOM = parentElementFromDOM.props.children[nextSiblingDOMIndex];
+        if (nextSiblingFromVDOM) {
+          nextSibling = renderedElementsMap[nextSiblingFromVDOM.VDOMPointer];
+        }
+        nextSiblingDOMIndex -= 1;
+      }
       parentElement.insertBefore(addedElement, nextSibling);
-      break;
-    case 'node_innerTextUpdate':
-      const textNode = diffItemPayload;
-      renderedElementsMap[textNode.VDOMPointer].nodeValue = textNode.value;
-      break;
-  }
+      renderedElementsMap[VDOMPointer] = addedElement;
+}
+
+// should appear in chapter-4/step-1
+const applyNodeReplaced = ({ renderedElementsMap, dom }, { VDOMPointer, payload: { newNode, oldNode, parentPointer } }) => {
+  applyNodeRemoved({ renderedElementsMap, dom }, { VDOMPointer, payload: { parentPointer } });
+  applyNodeAdded({ renderedElementsMap, dom }, { VDOMPointer, payload: { node: newNode, parentPointer } });
+};
+
+// should appear in chapter-4/step-1
+const applyNodeInnerTextUpdate = ({ renderedElementsMap }, { VDOMPointer, payload: { newElement }}) => {
+  renderedElementsMap[VDOMPointer].nodeValue = newElement.value;
+}
+
+// should appear in chapter-4/step-1
+const applyProps = ({ renderedElementsMap, dom }, { VDOMPointer, payload: propsChanged }) => {
+  Object.entries(propsChanged).forEach(([key, [propDiffType, { oldValue, newValue }]]) => {
+    if (propDiffType === 'updated') {
+      if (eventHandlersProps.includes(key)) {
+        removeEventHandler(renderedElementsMap[VDOMPointer], { key, value: oldValue });
+      }
+      applyPropToHTMLElement({ key, value: newValue }, renderedElementsMap[VDOMPointer]);
+    } else if (propDiffType === 'removed') {
+      removePropFromHTMLElement({ key }, renderedElementsMap[VDOMPointer]);
+    }
+  });
+}
+
+// should appear in chapter-4/step-1
+const diffApplicators = {
+  node_removed: applyNodeRemoved,
+  node_added: applyNodeAdded,
+  node_replaced: applyNodeReplaced,
+  node_innerTextUpdate: applyNodeInnerTextUpdate,
+  props: applyProps,
 }
 
 // Should appear in chapter-4/step-1
+const diffApplicationOrder = ['node_removed', 'node_added', 'node_replaced', 'node_innerTextUpdate', 'props'];
+
+// Should appear in chapter-4/step-1
 const applyDiff = (diff, renderedElementsMap, dom) => {
-  // We need to order the diff items by their types, node_removed, node_added, node_replaced, the rest
-  Object.entries(diff).forEach(([VDOMPointer, diffItem]) => applyDiffItem(VDOMPointer, diffItem, renderedElementsMap, dom));
+  const sortedDiffs = diff.sort((a, b) => diffApplicationOrder.indexOf(a.type) - diffApplicationOrder.indexOf(b.type));
+  sortedDiffs.forEach(diffItem => diffApplicators[diffItem.type]({ renderedElementsMap, dom }, diffItem));
 };
 
 const createRoot = (rootElement) => ({
@@ -251,7 +317,6 @@ const createRoot = (rootElement) => ({
       } else {
         applyDiff(diff, renderedElementsMap, rootChildDom);
       }
-
       /* version before chapter-4/step-1
       // update should appear in chapter-2/step-1
         if (!lastChild) {
