@@ -1,4 +1,5 @@
 import { startRenderSubscription } from '.';
+import { findRenderableByVDOMPointer, isChildVDOMPointer, findRootVDOMPointers } from './vdom-helpers';
 
 // should appear in chapter-2/step-1
 const isNonPrimitiveElement = (element) => element.type !== 'primitive';
@@ -99,54 +100,11 @@ const renderElementToHtml = (element, renderedElementsMap) => {
   return renderedElement;
 };
 
-// should appear in chapter-4/step-1
-const findByVDOMPointer = (renderableVDOM, domPointer) => {
-  if (!renderableVDOM) {
-    return;
-  }
-  if (renderableVDOM.VDOMPointer === domPointer) {
-    return renderableVDOM;
-  }
-  if (renderableVDOM.type === 'primitive' || !renderableVDOM.props.children) {
-    return;
-  }
-  return renderableVDOM.props.children.reduce((foundElement, child) =>
-    foundElement ? foundElement : findByVDOMPointer(child, domPointer),
-    null
-  );
-}
-
-// should appear in chapter-4/step-1
-const isChildVDOMPointer = (childVDOMPointer, parentVDOMPointer) => {
-  // everything is a child of the root level pointer []
-  if (parentVDOMPointer.length === 0) {
-    return true;
-  }
-  // to find out if a specific pointer is a child of another pointer, we can
-  // verify whether it contains numbers within the parent pointer
-  return new RegExp(`${parentVDOMPointer},(\\d+,?)+`).test(childVDOMPointer);
-};
 
 // should appear in chapter-4/step-1
 const findRenderedChildrenByVDOMPointer = (renderedElementsMap, VDOMPointer) => {
   return Object.entries(renderedElementsMap).filter(([pointer]) => isChildVDOMPointer(pointer, VDOMPointer));
 };
-
-// should appear in chapter-4/step-1
-const findRootVDOMPointers = (pointers) => {
-  if (pointers.length === 0) {
-    return pointers;
-  }
-  let rootPointers = [pointers[0]];
-  for (const pointer of pointers.slice(1)) {
-    const rootPointersOfCurrent = rootPointers.filter(rootPointer => isChildVDOMPointer(pointer, rootPointer));
-    if (rootPointersOfCurrent.length === 0) {
-      const newRootPointers = rootPointers.filter(rootPointer => !isChildVDOMPointer(rootPointer, pointer));
-      rootPointers = [...newRootPointers, pointer];
-    }
-  }
-  return rootPointers;
-}
 
 // should appear in chapter-4/step-1
 const applyNodeRemoved = ({ renderedElementsMap }, { VDOMPointer }) => {
@@ -208,7 +166,7 @@ const applyNodeAdded = ({ renderedElementsMap, renderableVDOM }, { VDOMPointer, 
         return;
       }
       const parentElement = renderedElementsMap[parentPointer];
-      const parentElementFromrenderableVDOM = findByVDOMPointer(renderableVDOM, parentPointer);
+      const parentElementFromrenderableVDOM = findRenderableByVDOMPointer(renderableVDOM, parentPointer);
       const elementRealVDOMIndex = parentElementFromrenderableVDOM.props.children.findIndex(child => child.VDOMPointer === VDOMPointer);
       let nextSiblingVDOMIndex = elementRealVDOMIndex - 1;
       let nextSibling;

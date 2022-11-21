@@ -1,7 +1,16 @@
 import * as React from '../../node_modules/react';
 export { DOMHandlers } from './dom-handlers';
-
 export default React;
+
+import {
+  isNonPrimitiveElement,
+  getVDOMElement,
+  setCurrentVDOMElement,
+  createVDOMElement,
+  createRenderableVDOMElement,
+  createPrimitiveVDOMElement,
+  vdomPointerKeyToVDOMPointerArray
+} from './vdom-helpers';
 
 // export const useState = (initialState) => [typeof initialState === 'function' ? initialState() : initialState, () => {}];
 // export const useEffect = () => {};
@@ -57,71 +66,36 @@ const { element: button } = getVDOMElement([1]], VDOM); // button
 
 // should appear in chapter-2/step-1
 export const isNonPrimitiveElementFromJSX = (element) => typeof element === 'object' && element.type;
-export const isNonPrimitiveElementFromVDOM = (element) => element.type !== 'primitive';
-export const isNonPrimitiveElement = (element) => isNonPrimitiveElementFromJSX(element) || isNonPrimitiveElementFromVDOM(element);
-
-// should appear in chapter-2/step-1
-const getVDOMElement = (pointer, VDOM) => pointer.reduce(
-  (targetElement, currentIndex) => targetElement ? (targetElement.renderedChildren || [])[currentIndex] : targetElement,
-  VDOM
-);
-// should appear in chapter-2/step-1
-const setCurrentVDOMElement = (pointer, element, VDOM) => {
-  if (pointer.length === 0) {
-    VDOM.current = element;
-    return;
-  }
-  const pointerToParent = getVDOMElement(pointer.slice(0, -1), VDOM.current);
-  const currentChildIndex = pointer[pointer.length - 1];
-  pointerToParent.renderedChildren[currentChildIndex] = element;
-};
-
-// should appear in chapter-2/step-1
-const createVDOMElement = (element, renderedChildren = []) => ({
-  element,
-  renderedChildren,
-});
-
-
-// diff should appear in chapter-3/step-2
-const vdomPointerKeyToVDOMPointerArray = (pointerAsString) => {
-  // The empty array ends up with an empty string, so this needs extra care when transforming
-  if (pointerAsString === '') {
-    return [];
-  }
-  // All the others end up split by `,` so we can split them back and transform the string to a number
-  return pointerAsString.split(',').map(s => parseInt(s));
-};
 
 // should appear in chapter-2/step-1
 const renderComponentElement = (element, VDOM, VDOMPointer, hooks) => {
   const { props: { children, ...props }, type } = element;
   const previousDOMElement = (getVDOMElement(VDOMPointer, VDOM.previous) || {}).element;
   const isFirstRender = previousDOMElement === undefined || previousDOMElement.type !== element.type;
-  const elementAsVDOMElement = { props, type, VDOMPointer };
+  const elementAsRenderableVDOMElement = createRenderableVDOMElement( props, type, VDOMPointer);
   if (typeof type === 'function') {
     // should appear in chapter-2/step-2
     hooks.registerHooks(VDOMPointer, isFirstRender);
     const renderedElement = type({ children, ...props });
-    setCurrentVDOMElement(VDOMPointer, createVDOMElement(elementAsVDOMElement), VDOM);
+    setCurrentVDOMElement(VDOMPointer, createVDOMElement(elementAsRenderableVDOMElement), VDOM);
     const renderedElementDOM = render(renderedElement, VDOM, [...VDOMPointer, 0], hooks);
     return renderedElementDOM;
   }
   if (typeof children !== 'undefined') {
     const childrenArray = Array.isArray(children) ? children : [children];
-    setCurrentVDOMElement(VDOMPointer, createVDOMElement(elementAsVDOMElement), VDOM);
+    setCurrentVDOMElement(VDOMPointer, createVDOMElement(elementAsRenderableVDOMElement), VDOM);
     const renderedChildren = childrenArray.map((child, index) => render(child, VDOM, [...VDOMPointer, index], hooks));
-    return { ...elementAsVDOMElement, props: { children: renderedChildren, ...elementAsVDOMElement.props } };
+    return { ...elementAsRenderableVDOMElement, props: { children: renderedChildren, ...elementAsRenderableVDOMElement.props } };
   }
-  setCurrentVDOMElement(VDOMPointer, createVDOMElement(elementAsVDOMElement), VDOM);
-  return elementAsVDOMElement;
+  setCurrentVDOMElement(VDOMPointer, createVDOMElement(elementAsRenderableVDOMElement), VDOM);
+  return elementAsRenderableVDOMElement;
 }
 
 // should appear in chapter-2/step-1
-const renderPrimitive = (primitiveType, VDOM, VDOMPointer) => {
-  const elementAsVDOMElement = { value: primitiveType, type: 'primitive', VDOMPointer };
-  setCurrentVDOMElement(VDOMPointer, createVDOMElement(elementAsVDOMElement), VDOM);
-  return elementAsVDOMElement;
+const renderPrimitive = (value, VDOM, VDOMPointer) => {
+  const elementAsRenderableVDOMElement = createPrimitiveVDOMElement(value, VDOMPointer);
+  setCurrentVDOMElement(VDOMPointer, createVDOMElement(elementAsRenderableVDOMElement), VDOM);
+  return elementAsRenderableVDOMElement;
 };
 
 // should appear in chapter-2/step-1
@@ -321,7 +295,7 @@ const compareVDOMElement = (currentRenderableVDOMElement, vdom, parentPointer) =
 
   // If both primitive
   if (
-    !isNonPrimitiveElementFromVDOM(prevElement) && !isNonPrimitiveElementFromVDOM(currElement)
+    !isNonPrimitiveElement(prevElement) && !isNonPrimitiveElement(currElement)
   ) {
     if (prevElement.value !== currElement.value) {
       return [{ VDOMPointer: currentRenderableVDOMElement.VDOMPointer, type: 'node_innerTextUpdate', payload: { newElement: currElement } }];
