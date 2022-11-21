@@ -3,7 +3,7 @@ export { DOMHandlers } from './dom-handlers';
 export default React;
 
 import {
-  isNonPrimitiveElement,
+  isPrimitiveElement,
   getVDOMElement,
   setCurrentVDOMElement,
   createVDOMElement,
@@ -65,7 +65,7 @@ const { element: button } = getVDOMElement([1]], VDOM); // button
 */
 
 // should appear in chapter-2/step-1
-export const isNonPrimitiveElementFromJSX = (element) => typeof element === 'object' && element.type;
+export const isPrimitiveElementFromJSX = (element) => typeof element !== 'object';
 
 // should appear in chapter-2/step-1
 const renderComponentElement = (element, VDOM, VDOMPointer, hooks) => {
@@ -100,9 +100,9 @@ const renderPrimitive = (value, VDOM, VDOMPointer) => {
 
 // should appear in chapter-2/step-1
 const render = (element, VDOM, VDOMPointer, hooks) =>
-  isNonPrimitiveElementFromJSX(element) ?
-    renderComponentElement(element, VDOM, VDOMPointer, hooks) :
-    renderPrimitive(element, VDOM, VDOMPointer);
+  isPrimitiveElementFromJSX(element) ?
+    renderPrimitive(element, VDOM, VDOMPointer) :
+    renderComponentElement(element, VDOM, VDOMPointer, hooks);
 
 // should appear in chapter-2/step-1
 const rootRender = (element, hooks, vdom) => {
@@ -295,7 +295,7 @@ const compareVDOMElement = (currentRenderableVDOMElement, vdom, parentPointer) =
 
   // If both primitive
   if (
-    !isNonPrimitiveElement(prevElement) && !isNonPrimitiveElement(currElement)
+    isPrimitiveElement(prevElement) && isPrimitiveElement(currElement)
   ) {
     if (prevElement.value !== currElement.value) {
       return [{ VDOMPointer: currentRenderableVDOMElement.VDOMPointer, type: 'node_innerTextUpdate', payload: { newElement: currElement } }];

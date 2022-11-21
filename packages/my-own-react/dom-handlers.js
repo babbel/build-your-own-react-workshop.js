@@ -1,10 +1,10 @@
 import { startRenderSubscription } from '.';
-import { findRenderableByVDOMPointer, isChildVDOMPointer, findRootVDOMPointers } from './vdom-helpers';
-
-// should appear in chapter-2/step-1
-const isNonPrimitiveElement = (element) => element.type !== 'primitive';
-// should appear in chapter-1/step-6
-// const isNonPrimitiveElement = (element) => element.type !== 'primitive';
+import {
+  findRenderableByVDOMPointer,
+  isChildVDOMPointer,
+  findRootVDOMPointers,
+  isPrimitiveElement
+} from './vdom-helpers';
 
 // should appear in chapter-1/step-3
 const eventHandlersProps = ['onClick', 'onChange', 'onSubmit'];
@@ -93,9 +93,9 @@ const renderPrimitiveToHtml = ({ value }) => {
 
 // renderedElementsMap should appear in chapter-4/step-1
 const renderElementToHtml = (element, renderedElementsMap) => {
-  const renderedElement = isNonPrimitiveElement(element) ?
-    renderComponentElementToHtml(element, renderedElementsMap) :
-    renderPrimitiveToHtml(element);
+  const renderedElement = isPrimitiveElement(element) ?
+    renderPrimitiveToHtml(element) :
+    renderComponentElementToHtml(element, renderedElementsMap);
   renderedElementsMap[element.VDOMPointer] = renderedElement;
   return renderedElement;
 };

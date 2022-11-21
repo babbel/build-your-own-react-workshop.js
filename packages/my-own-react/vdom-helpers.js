@@ -1,7 +1,7 @@
 const PRIMITIVE_TYPE = 'primitive';
 
 // should appear in chapter-2/step-1
-export const isNonPrimitiveElement = (element) => element.type !== PRIMITIVE_TYPE;
+export const isPrimitiveElement = (element) => element.type === PRIMITIVE_TYPE;
 
 // should appear in chapter-2/step-1
 export const getVDOMElement = (pointer, VDOM) => pointer.reduce(
