@@ -7,38 +7,27 @@ import {
 } from './vdom-helpers';
 
 // should appear in chapter-1/step-3
-const eventHandlersProps = ['onClick', 'onChange', 'onSubmit'];
+const eventHandlersMap = {
+  onClick: 'click',
+  // for the `change` event to trigger, the user is required to leave the field and come back
+  // so it seems like React decided to use the `input` event under the hood
+  onChange: 'input',
+  onSubmit: 'submit',
+};
+const isEventHandlerProp = (key) => Object.keys(eventHandlersMap).includes(key);
 // should appear in chapter-1/step-3
 const addEventHandler = (domElement, { key, value }) => {
-  switch (key) {
-    case 'onClick':
-      return domElement.addEventListener('click', value);
-    case 'onChange':
-      // for the `change` event to trigger, the user is required to leave the field and come back
-      // so it seems like React decided to use the `input` event under the hood
-      return domElement.addEventListener('input', value);
-    case 'onSubmit':
-      return domElement.addEventListener('submit', value);
-  }
+  domElement.addEventListener(eventHandlersMap[key], value);
 }
 
 // should appear in chapter-4/step-1
 const removeEventHandler = (domElement, { key, value }) => {
-  switch (key) {
-    case 'onClick':
-      return domElement.removeEventListener('click', value);
-    case 'onChange':
-      // for the `change` event to trigger, the user is required to leave the field and come back
-      // so it seems like React decided to use the `input` event under the hood
-      return domElement.removeEventListener('input', value);
-    case 'onSubmit':
-      return domElement.removeEventListener('submit', value);
-  }
+  domElement.removeEventListener(eventHandlersMap[key], value);
 }
 
 // should appear in chapter-1/step-3
 const applyPropToHTMLElement = ({ key, value }, element) => {
-  if (eventHandlersProps.includes(key)) {
+  if (isEventHandlerProp(key)) {
     addEventHandler(element, { key, value });
     return;
   }
@@ -47,7 +36,7 @@ const applyPropToHTMLElement = ({ key, value }, element) => {
 
 // should appear in chapter-4/step-1
 const removePropFromHTMLElement = ({ key, oldValue }, element) => {
-  if (eventHandlersProps.includes(key)) {
+  if (isEventHandlerProp(key)) {
     removeEventHandler(renderedElementsMap[VDOMPointer], { key, oldValue });
     return;
   }
@@ -198,7 +187,7 @@ const applyNodeInnerTextUpdate = ({ renderedElementsMap }, { VDOMPointer, payloa
 const applyProps = ({ renderedElementsMap }, { VDOMPointer, payload: propsChanged }) => {
   Object.entries(propsChanged).forEach(([key, [propDiffType, { oldValue, newValue }]]) => {
     if (propDiffType === 'updated') {
-      if (eventHandlersProps.includes(key)) {
+      if (isEventHandlerProp(key)) {
         removeEventHandler(renderedElementsMap[VDOMPointer], { key, value: oldValue });
       }
       applyPropToHTMLElement({ key, value: newValue }, renderedElementsMap[VDOMPointer]);
