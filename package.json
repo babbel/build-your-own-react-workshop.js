@@ -2,7 +2,10 @@
   "name": "build-your-own-react-workshop",
   "version": "1.0.0",
   "description": "The workspace setup for the build your own react workshop!",
-  "scripts": {},
+  "scripts": {
+    "start": "cd todo-app && npm start",
+    "postinstall": "cd todo-app && npm ci"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/babbel/build-your-own-react-workshop.js.git"
