@@ -134,10 +134,10 @@ const render = (element, VDOM, VDOMPointer, hooks) =>
 
 // should appear in chapter-2/step-1
 const rootRender = (element, hooks, vdom) => {
-  let dom = render(element, vdom, [], hooks);
+  let renderableVDOM = render(element, vdom, [], hooks);
   // Should appear in final
   hooks.cleanHooks((VDOMPointer) => getVDOMElement(VDOMPointer, vdom.current) !== undefined);
-  return dom;
+  return renderableVDOM;
 };
 
 
@@ -289,34 +289,34 @@ const createHooks = (onUpdate, registerOnUpdatedCallback) => {
 }
 
 // Should appear in chapter-3/step-2
-const compareVDOMElement = (curr, vdom, parentPointer) => {
-  const prev = getVDOMElement(curr.VDOMPointer, vdom.previous);
+const compareVDOMElement = (currentRenderableVDOMElement, vdom, parentPointer) => {
+  const prev = getVDOMElement(currentRenderableVDOMElement.VDOMPointer, vdom.previous);
 
   // no change
-  if (!prev && !curr) {
+  if (!prev && !currentRenderableVDOMElement) {
     return [];
   }
 
   // added element
   if (!prev) {
-    return [{ VDOMPointer: curr.VDOMPointer, type: 'node_added', payload: { node: curr, parentPointer } }];
+    return [{ VDOMPointer: currentRenderableVDOMElement.VDOMPointer, type: 'node_added', payload: { node: currentRenderableVDOMElement, parentPointer } }];
   }
 
   // Hopefully this becomes redundant
   // removed element
-  if (!curr) {
-    return [{ VDOMPointer: curr.VDOMPointer, type: 'node_removed', payload: {} }];
+  if (!currentRenderableVDOMElement) {
+    return [{ VDOMPointer: currentRenderableVDOMElement.VDOMPointer, type: 'node_removed', payload: {} }];
   }
 
   const prevElement = prev.element;
-  const currElement = curr;
+  const currElement = currentRenderableVDOMElement;
 
   // Have different types
   if (
     typeof prevElement !== typeof currElement
     || typeof (prevElement || {}).type !== typeof (currElement || {}).type
   ) {
-    return [{ VDOMPointer: curr.VDOMPointer, type: 'node_replaced', payload: { newNode: curr, oldNode: prevElement, parentPointer } }];
+    return [{ VDOMPointer: currentRenderableVDOMElement.VDOMPointer, type: 'node_replaced', payload: { newNode: currentRenderableVDOMElement, oldNode: prevElement, parentPointer } }];
   }
 
   // Both same type 👇
@@ -326,7 +326,7 @@ const compareVDOMElement = (curr, vdom, parentPointer) => {
     !isNonPrimitiveElementFromVDOM(prevElement) && !isNonPrimitiveElementFromVDOM(currElement)
   ) {
     if (prevElement.value !== currElement.value) {
-      return [{ VDOMPointer: curr.VDOMPointer, type: 'node_innerTextUpdate', payload: { newElement: currElement } }];
+      return [{ VDOMPointer: currentRenderableVDOMElement.VDOMPointer, type: 'node_innerTextUpdate', payload: { newElement: currElement } }];
     }
 
     // no change
@@ -347,7 +347,7 @@ const compareVDOMElement = (curr, vdom, parentPointer) => {
 
     // seperating this case just in case we may wanna delete the prop directly
     if (!(key in currElement.props)) {
-      changedProps[key] = ['removed'];
+      changedProps[key] = ['removed', { oldValue: prevElement.props[key] }];
       continue;
     }
 
@@ -360,21 +360,21 @@ const compareVDOMElement = (curr, vdom, parentPointer) => {
   // conditional case to keep output clean
   if (Object.keys(changedProps).length > 0) {
     diff.push(
-      { VDOMPointer: curr.VDOMPointer, type: 'props', payload: changedProps }
+      { VDOMPointer: currentRenderableVDOMElement.VDOMPointer, type: 'props', payload: changedProps }
     );
   }
 
   // Recursive into children
   const prevChildren = prev.renderedChildren || [];
-  const currChildren = curr.props.children || [];
+  const currChildren = currentRenderableVDOMElement.props.children || [];
   const maxIndex = Math.max(prevChildren.length, currChildren.length);
   for (let index = 0; index < maxIndex; index++) {
     const currChild = currChildren[index];
     if (!currChild) {
-      diff.push({ VDOMPointer: [...curr.VDOMPointer, index], type: 'node_removed', payload: {} })
+      diff.push({ VDOMPointer: [...currentRenderableVDOMElement.VDOMPointer, index], type: 'node_removed', payload: {} })
       continue;
     }
-    const res = compareVDOMElement(currChild, vdom, curr.VDOMPointer);
+    const res = compareVDOMElement(currChild, vdom, currentRenderableVDOMElement.VDOMPointer);
     if (res) {
       diff = [ ...diff, ...res ];
     }
@@ -384,8 +384,8 @@ const compareVDOMElement = (curr, vdom, parentPointer) => {
 };
 
 // Should appear in chapter-3/step-2
-const getVDOMDiff = (dom, vdom) => {
-  return compareVDOMElement(dom, vdom);
+const getVDOMDiff = (renderableVDOM, vdom) => {
+  return compareVDOMElement(renderableVDOM, vdom);
 };
 
 // interface should appear in chapter-2/step-1
@@ -401,16 +401,16 @@ export const startRenderSubscription = (element, updateCallback) => {
     afterUpdate = callback;
   };
   const update = (hooks) => {
-    const dom = rootRender(element, hooks, vdom);
+    const renderableVDOM = rootRender(element, hooks, vdom);
     // diff should appear in chapter-3/step-2
-    const diff = getVDOMDiff(dom, vdom);
+    const diff = getVDOMDiff(renderableVDOM, vdom);
 
 
     vdom.previous = vdom.current;
     vdom.current = [];
 
     // diff should appear in chapter-4/step-1
-    updateCallback(dom, diff);
+    updateCallback(renderableVDOM, diff);
     // Should appear in chapter-4/step-2
     afterUpdate();
   };

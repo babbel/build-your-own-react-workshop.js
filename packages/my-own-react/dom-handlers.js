@@ -100,18 +100,18 @@ const renderElementToHtml = (element, renderedElementsMap) => {
 };
 
 // should appear in chapter-4/step-1
-const findByDomPointer = (dom, domPointer) => {
-  if (!dom) {
+const findByVDOMPointer = (renderableVDOM, domPointer) => {
+  if (!renderableVDOM) {
     return;
   }
-  if (dom.VDOMPointer === domPointer) {
-    return dom;
+  if (renderableVDOM.VDOMPointer === domPointer) {
+    return renderableVDOM;
   }
-  if (dom.type === 'primitive' || !dom.props.children) {
+  if (renderableVDOM.type === 'primitive' || !renderableVDOM.props.children) {
     return;
   }
-  return dom.props.children.reduce((foundElement, child) =>
-    foundElement ? foundElement : findByDomPointer(child, domPointer),
+  return renderableVDOM.props.children.reduce((foundElement, child) =>
+    foundElement ? foundElement : findByVDOMPointer(child, domPointer),
     null
   );
 }
@@ -170,8 +170,9 @@ const applyNodeRemoved = ({ renderedElementsMap }, { VDOMPointer }) => {
 }
 
 // should appear in chapter-4/step-1
-const applyNodeAdded = ({ renderedElementsMap, dom }, { VDOMPointer, payload: { node, parentPointer } }) => {
+const applyNodeAdded = ({ renderedElementsMap, renderableVDOM }, { VDOMPointer, payload: { node, parentPointer } }) => {
       /*
+        VDOM
         <App>
           <div>
             <Component>
@@ -186,6 +187,7 @@ const applyNodeAdded = ({ renderedElementsMap, dom }, { VDOMPointer, payload: { 
           </div>
         </App>
 
+        renderableVDOM (with VDOMPointer)
         <div> [0]
           <div> [0, 0, 0]
             <span>First child</span> [0, 0, 0, 0, 0]
@@ -196,7 +198,8 @@ const applyNodeAdded = ({ renderedElementsMap, dom }, { VDOMPointer, payload: { 
 
         diff [0, 0, 0, 1]: ['node_added', { element: { type: span }, VDOMPointer: [0, 0, 0, 1] }]
 
-        DOM: [0, 0, 0]
+        renderableVDOM parent: [0, 0, 0]
+        renderableVDOM next sibling: [0, 0, 0, 0, 1]
       */
       const addedElement = renderElementToHtml(node, renderedElementsMap);
       // The addedElement could be a value that doesn't render to the DOM such as `false`
@@ -205,27 +208,27 @@ const applyNodeAdded = ({ renderedElementsMap, dom }, { VDOMPointer, payload: { 
         return;
       }
       const parentElement = renderedElementsMap[parentPointer];
-      const parentElementFromDOM = findByDomPointer(dom, parentPointer);
-      const elementRealVDOMIndex = parentElementFromDOM.props.children.findIndex(child => child.VDOMPointer === VDOMPointer);
-      let nextSiblingDOMIndex = elementRealVDOMIndex - 1;
+      const parentElementFromrenderableVDOM = findByVDOMPointer(renderableVDOM, parentPointer);
+      const elementRealVDOMIndex = parentElementFromrenderableVDOM.props.children.findIndex(child => child.VDOMPointer === VDOMPointer);
+      let nextSiblingVDOMIndex = elementRealVDOMIndex - 1;
       let nextSibling;
       // The next sibling could be a value that doesn't render to the DOM such as `false`
       // so we need to continue searching for the first rendered one here
-      while (nextSiblingDOMIndex > 0 && nextSibling === undefined) {
-        const nextSiblingFromVDOM = parentElementFromDOM.props.children[nextSiblingDOMIndex];
+      while (nextSiblingVDOMIndex > 0 && nextSibling === undefined) {
+        const nextSiblingFromVDOM = parentElementFromrenderableVDOM.props.children[nextSiblingVDOMIndex];
         if (nextSiblingFromVDOM) {
           nextSibling = renderedElementsMap[nextSiblingFromVDOM.VDOMPointer];
         }
-        nextSiblingDOMIndex -= 1;
+        nextSiblingVDOMIndex -= 1;
       }
       parentElement.insertBefore(addedElement, nextSibling);
       renderedElementsMap[VDOMPointer] = addedElement;
 }
 
 // should appear in chapter-4/step-1
-const applyNodeReplaced = ({ renderedElementsMap, dom }, { VDOMPointer, payload: { newNode, oldNode, parentPointer } }) => {
-  applyNodeRemoved({ renderedElementsMap, dom }, { VDOMPointer, payload: { parentPointer } });
-  applyNodeAdded({ renderedElementsMap, dom }, { VDOMPointer, payload: { node: newNode, parentPointer } });
+const applyNodeReplaced = ({ renderedElementsMap, renderableVDOM }, { VDOMPointer, payload: { newNode, oldNode, parentPointer } }) => {
+  applyNodeRemoved({ renderedElementsMap, renderableVDOM }, { VDOMPointer, payload: { parentPointer } });
+  applyNodeAdded({ renderedElementsMap, renderableVDOM }, { VDOMPointer, payload: { node: newNode, parentPointer } });
 };
 
 // should appear in chapter-4/step-1
@@ -234,7 +237,7 @@ const applyNodeInnerTextUpdate = ({ renderedElementsMap }, { VDOMPointer, payloa
 }
 
 // should appear in chapter-4/step-1
-const applyProps = ({ renderedElementsMap, dom }, { VDOMPointer, payload: propsChanged }) => {
+const applyProps = ({ renderedElementsMap }, { VDOMPointer, payload: propsChanged }) => {
   Object.entries(propsChanged).forEach(([key, [propDiffType, { oldValue, newValue }]]) => {
     if (propDiffType === 'updated') {
       if (eventHandlersProps.includes(key)) {
@@ -260,9 +263,9 @@ const diffApplicators = {
 const diffApplicationOrder = ['node_removed', 'node_added', 'node_replaced', 'node_innerTextUpdate', 'props'];
 
 // Should appear in chapter-4/step-1
-const applyDiff = (diff, renderedElementsMap, dom) => {
+const applyDiff = (diff, renderedElementsMap, renderableVDOM) => {
   const sortedDiffs = diff.sort((a, b) => diffApplicationOrder.indexOf(a.type) - diffApplicationOrder.indexOf(b.type));
-  sortedDiffs.forEach(diffItem => diffApplicators[diffItem.type]({ renderedElementsMap, dom }, diffItem));
+  sortedDiffs.forEach(diffItem => diffApplicators[diffItem.type]({ renderedElementsMap, renderableVDOM }, diffItem));
 };
 
 const createRoot = (rootElement) => ({
@@ -273,29 +276,29 @@ const createRoot = (rootElement) => ({
     // Should appear in chapter-4/step-1
     let renderedElementsMap = {};
     // Should appear in chapter-4/step-1
-    startRenderSubscription(rootChild, (rootChildDom, diff) => {
-    // startRenderSubscription(rootChild, (rootChildDom) => {
+    startRenderSubscription(rootChild, (renderableVDOM, diff) => {
+    // startRenderSubscription(rootChild, (renderableVDOM) => {
       // Should appear in chapter-4/step-1
       if (Object.keys(renderedElementsMap).length === 0) {
-        const rootChildAsHTML = renderElementToHtml(rootChildDom, renderedElementsMap);
+        const rootChildAsHTML = renderElementToHtml(renderableVDOM, renderedElementsMap);
         rootElement.appendChild(rootChildAsHTML);
       } else {
-        applyDiff(diff, renderedElementsMap, rootChildDom);
+        applyDiff(diff, renderedElementsMap, renderableVDOM);
       }
       /* version before chapter-4/step-1
       // update should appear in chapter-2/step-1
         if (!lastChild) {
-          const rootChildAsHTML = renderElementToHtml(rootChildDom);
+          const rootChildAsHTML = renderElementToHtml(renderableVDOM);
           rootElement.appendChild(rootChildAsHTML);
         } else {
-          const rootChildAsHTML = renderElementToHtml(rootChildDom, renderedElementsMap);
+          const rootChildAsHTML = renderElementToHtml(renderableVDOM, renderedElementsMap);
           rootElement.replaceChild(rootChildAsHTML, lastChild);
         }
         lastChild = rootChildAsHTML;
       */
      /* version before chapter-2/step-1
      // should appear in chapter-1/step-2
-      const rootChildAsHTML = renderElementToHtml(rootChildDom);
+      const rootChildAsHTML = renderElementToHtml(renderableVDOM);
       rootElement.appendChild(rootChildAsHTML);
      */
     });
