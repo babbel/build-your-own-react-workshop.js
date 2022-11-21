@@ -101,6 +101,26 @@ const findRenderedChildrenByVDOMPointer = (renderedElementsMap, VDOMPointer) => 
 };
 
 // should appear in chapter-4/step-1
+const findNextSiblingOfVDOMPointer = ({ renderedElementsMap, renderableVDOM }, VDOMPointer, parentPointer) => {
+  const parentElementFromRenderableVDOM = findRenderableByVDOMPointer(renderableVDOM, parentPointer);
+  const parentChildren = parentElementFromRenderableVDOM.props.children;
+  const childVDOMIndex = parentChildren.findIndex(child => child.VDOMPointer === VDOMPointer);
+  let nextSiblingVDOMIndex = childVDOMIndex + 1;
+  let nextSibling;
+  // The next sibling could be a value that doesn't render to the DOM such as `false`
+  // or a sibling that has not yet been rendered to the DOM (if it was added in the same update cycle)
+  // so we need to continue searching for the first rendered one here
+  while (nextSiblingVDOMIndex < parentChildren.length && nextSibling === undefined) {
+    const nextSiblingFromVDOM = parentElementFromRenderableVDOM.props.children[nextSiblingVDOMIndex];
+    if (nextSiblingFromVDOM) {
+      nextSibling = renderedElementsMap[nextSiblingFromVDOM.VDOMPointer];
+    }
+    nextSiblingVDOMIndex += 1;
+  }
+  return nextSibling;
+}
+
+// should appear in chapter-4/step-1
 const applyNodeRemoved = ({ renderedElementsMap }, { VDOMPointer }) => {
   const elementToRemove = renderedElementsMap[VDOMPointer];
   if (elementToRemove) {
@@ -153,25 +173,13 @@ const applyNodeAdded = ({ renderedElementsMap, renderableVDOM }, { VDOMPointer, 
         renderableVDOM parent: [0, 0, 0]
         renderableVDOM next sibling: [0, 0, 0, 0, 1]
       */
+      const parentElement = renderedElementsMap[parentPointer];
+      const nextSibling = findNextSiblingOfVDOMPointer({ renderedElementsMap, renderableVDOM }, VDOMPointer, parentPointer);
       const addedElement = renderElementToHtml(node, renderedElementsMap);
       // The addedElement could be a value that doesn't render to the DOM such as `false`
       if (!addedElement) {
         renderedElementsMap[VDOMPointer] = addedElement;
         return;
-      }
-      const parentElement = renderedElementsMap[parentPointer];
-      const parentElementFromrenderableVDOM = findRenderableByVDOMPointer(renderableVDOM, parentPointer);
-      const elementRealVDOMIndex = parentElementFromrenderableVDOM.props.children.findIndex(child => child.VDOMPointer === VDOMPointer);
-      let nextSiblingVDOMIndex = elementRealVDOMIndex - 1;
-      let nextSibling;
-      // The next sibling could be a value that doesn't render to the DOM such as `false`
-      // so we need to continue searching for the first rendered one here
-      while (nextSiblingVDOMIndex > 0 && nextSibling === undefined) {
-        const nextSiblingFromVDOM = parentElementFromrenderableVDOM.props.children[nextSiblingVDOMIndex];
-        if (nextSiblingFromVDOM) {
-          nextSibling = renderedElementsMap[nextSiblingFromVDOM.VDOMPointer];
-        }
-        nextSiblingVDOMIndex -= 1;
       }
       parentElement.insertBefore(addedElement, nextSibling);
       renderedElementsMap[VDOMPointer] = addedElement;
@@ -184,7 +192,7 @@ const applyNodeReplaced = ({ renderedElementsMap, renderableVDOM }, { VDOMPointe
 };
 
 // should appear in chapter-4/step-1
-const applyNodeInnerTextUpdate = ({ renderedElementsMap }, { VDOMPointer, payload: { newElement }}) => {
+const applyPrimitiveNodeUpdate = ({ renderedElementsMap }, { VDOMPointer, payload: { newElement }}) => {
   renderedElementsMap[VDOMPointer].nodeValue = newElement.value;
 }
 
@@ -207,7 +215,7 @@ const diffApplicators = {
   [diffType.nodeRemoved]: applyNodeRemoved,
   [diffType.nodeAdded]: applyNodeAdded,
   [diffType.nodeReplaced]: applyNodeReplaced,
-  [diffType.primitiveNodeUpdate]: applyNodeInnerTextUpdate,
+  [diffType.primitiveNodeUpdate]: applyPrimitiveNodeUpdate,
   [diffType.props]: applyProps,
 };
 
