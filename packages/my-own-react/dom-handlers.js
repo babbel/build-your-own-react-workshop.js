@@ -1,34 +1,5 @@
 import { startRenderSubscription } from '.';
 
-// should appear in chapter-1/step-5
-const jsStyleToCSSStyle = (styleObject) => {
-  // const declaration = new CSSStyleDeclaration();
-  const declaration = document.createElement('span').style;
-  Object.entries(styleObject).forEach(([key, value]) => {
-    // Fun fact: this doesn't take care of converting unitless to unit-based values
-    // e.g. height: 100 becomes height: 100px in React, but not with this. Instead,
-    // we are throwing errors for the key-value pairs that can't be directly used
-    // as a CSS property and value.
-    declaration[key] = value;
-    if (declaration[key] === '' && value !== '') {
-      throw new Error(`Invalid ${key}:${value} CSS`);
-    }
-  });
-  return declaration.cssText;
-}
-
-// should appear in chapter-1/step-4
-const propToDomTransformers = {
-  // should appear in chapter-1/step-5
-  style: ({ key, value }) => ({ key, value: jsStyleToCSSStyle(value) }),
-};
-
-// should appear in chapter-1/step-4
-const transformPropToDomProp = (prop) => {
-  const transformer = propToDomTransformers[prop.key] || (p => p);
-  return transformer(prop);
-};
-
 // should appear in chapter-2/step-1
 const isNonPrimitiveElement = (element) => element.type !== 'primitive';
 // should appear in chapter-1/step-6
@@ -65,15 +36,11 @@ const removeEventHandler = (domElement, { key, value }) => {
 }
 
 // should appear in chapter-1/step-3
-const applyPropToHTMLElement = (prop, element) => {
-  // should appear in chapter-1/step-4
-  const domProp = transformPropToDomProp(prop);
-  const { key, value } = domProp;
+const applyPropToHTMLElement = ({ key, value }, element) => {
   if (eventHandlersProps.includes(key)) {
     addEventHandler(element, { key, value });
     return;
   }
-
   element[key] = value;
 }
 
