@@ -45,12 +45,12 @@ const applyPropToHTMLElement = ({ key, value }, element) => {
 }
 
 // should appear in chapter-4/step-1
-const removePropFromHTMLElement = (prop, element) => {
-  const domProp = transformPropToDomProp(prop);
+const removePropFromHTMLElement = ({ key, oldValue }, element) => {
   if (eventHandlersProps.includes(key)) {
-    removeEventHandler(renderedElementsMap[VDOMPointer], { key, value: oldValue });
+    removeEventHandler(renderedElementsMap[VDOMPointer], { key, oldValue });
+    return;
   }
-  element.removeAttribute(domProp);
+  element.removeAttribute(key);
 };
 
 // renderedElementsMap should appear in chapter-4/step-1
@@ -242,7 +242,7 @@ const applyProps = ({ renderedElementsMap, dom }, { VDOMPointer, payload: propsC
       }
       applyPropToHTMLElement({ key, value: newValue }, renderedElementsMap[VDOMPointer]);
     } else if (propDiffType === 'removed') {
-      removePropFromHTMLElement({ key }, renderedElementsMap[VDOMPointer]);
+      removePropFromHTMLElement({ key, oldValue }, renderedElementsMap[VDOMPointer]);
     }
   });
 }
