@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactDOM from 'react-dom/client';
+// import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
@@ -23,13 +23,13 @@ root.render(<App />);
 
 /*
 const SimpleTest = () => (
-  <div className="test" aria-hidden style={{ backgroundColor: 'red', height: '100px', color: 'white' }}>
+  <div className="test" aria-hidden>
     <span>Hello World!</span>
   </div>
 );
 
 const Test = ({ message }) => (
-  <div className="test" aria-hidden style={{ backgroundColor: 'red', height: '100px', color: 'white' }}>
+  <div className="test" aria-hidden>
     <span>{message}</span>
   </div>
 );
@@ -55,27 +55,17 @@ const root = DOMHandlers.createRoot(document.getElementById('root'));
 root.render(<SimpleTest />);
 
 const root = DOMHandlers.createRoot(document.getElementById('root'));
-root.render(<div className="test" aria-hidden style={{ backgroundColor: 'red', height: '100px', color: 'white' }}>
+root.render(<div className="test">
   <span>Hello Test!</span>
 </div>);
 
 const root = DOMHandlers.createRoot(document.getElementById('root'));
-root.render(<div className="test" aria-hidden style={{ backgroundColor: 'red', height: '100px', color: 'white' }}>
+root.render(<div className="test">
   Hello Test!
 </div>);
 
   const root = DOMHandlers.createRoot(document.getElementById('root'));
-root.render(<div className="test" aria-hidden style={{ backgroundColor: 're', height: '100px', color: 'white' }}></div>);
-
-
-  const root = DOMHandlers.createRoot(document.getElementById('root'));
-root.render(<div className="test" aria-hidden style={{ backgroundColor: 'red', height: '100px', color: 'white' }}></div>);
-
-  const root = DOMHandlers.createRoot(document.getElementById('root'));
-root.render(<div className="test" aria-hidden></div>);
-
-  const root = DOMHandlers.createRoot(document.getElementById('root'));
-root.render(<div id="test"></div>);
+root.render(<div className="test" id="test" aria-hidden></div>);
 
   const root = DOMHandlers.createRoot(document.getElementById('root'));
 root.render(<div></div>);

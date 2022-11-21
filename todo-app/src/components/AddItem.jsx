@@ -13,7 +13,7 @@ import './AddItem.css';
         onAddItem(item)
         setItem('')
     }
-
+console.log({item})
  return (
     <form className='addSection' onSubmit={handleOnAdd}>
         <label className='inputLabel' htmlFor='itemInput'>Add an item to your list</label>
