@@ -1,4 +1,5 @@
 # build-your-own-react-workshop.js
+
 Library that constitutes part of a workshop for React Day 2022, which teaches participants how to build their own version of React (R2D2)
 
 ## Build your own (simple) React from scratch!
@@ -12,7 +13,9 @@ At the end of the workshop, a simple TODO app written in React will work with yo
 
 Level: Medium
 Duration of workshop: 3 hours
+
 ### Table of contents
+
 - Introduction
 - Rendering our first component
 - Update cycle and the VDOM

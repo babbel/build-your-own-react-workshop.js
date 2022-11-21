@@ -9,17 +9,12 @@ import {
   createRenderableVDOMElement,
   createPrimitiveVDOMElement,
 } from './vdom-helpers';
-import {
-  createHooks,
-  useEffect,
-  useState
-} from './hooks';
+import { createHooks, useEffect, useState } from './hooks';
 export { useEffect, useState };
 import { getRenderableVDOMDiff } from './diff';
 
 // export const useState = (initialState) => [typeof initialState === 'function' ? initialState() : initialState, () => {}];
 // export const useEffect = () => {};
-
 
 // should appear in chapter-2/step-1
 /*
@@ -70,51 +65,95 @@ const { element: button } = getVDOMElement([1]], VDOM); // button
 */
 
 // should appear in chapter-2/step-1
-export const isPrimitiveElementFromJSX = (element) => typeof element !== 'object';
+export const isPrimitiveElementFromJSX = element => typeof element !== 'object';
 
 // should appear in chapter-2/step-1
 const renderComponentElement = (element, VDOM, VDOMPointer, hooks) => {
-  const { props: { children, ...props }, type } = element;
-  const previousDOMElement = (getVDOMElement(VDOMPointer, VDOM.previous) || {}).element;
-  const isFirstRender = previousDOMElement === undefined || previousDOMElement.type !== element.type;
-  const elementAsRenderableVDOMElement = createRenderableVDOMElement( props, type, VDOMPointer);
+  const {
+    props: { children, ...props },
+    type,
+  } = element;
+  const previousDOMElement = (getVDOMElement(VDOMPointer, VDOM.previous) || {})
+    .element;
+  const isFirstRender =
+    previousDOMElement === undefined ||
+    previousDOMElement.type !== element.type;
+  const elementAsRenderableVDOMElement = createRenderableVDOMElement(
+    props,
+    type,
+    VDOMPointer,
+  );
   if (typeof type === 'function') {
     const FunctionalComponent = type;
     // should appear in chapter-2/step-2
     hooks.registerHooks(VDOMPointer, isFirstRender);
     const renderedElement = FunctionalComponent({ children, ...props });
-    setCurrentVDOMElement(VDOMPointer, createVDOMElement(elementAsRenderableVDOMElement), VDOM);
-    const renderedElementDOM = render(renderedElement, VDOM, [...VDOMPointer, 0], hooks);
+    setCurrentVDOMElement(
+      VDOMPointer,
+      createVDOMElement(elementAsRenderableVDOMElement),
+      VDOM,
+    );
+    const renderedElementDOM = render(
+      renderedElement,
+      VDOM,
+      [...VDOMPointer, 0],
+      hooks,
+    );
     return renderedElementDOM;
   }
   if (typeof children !== 'undefined') {
     const childrenArray = Array.isArray(children) ? children : [children];
-    setCurrentVDOMElement(VDOMPointer, createVDOMElement(elementAsRenderableVDOMElement), VDOM);
-    const renderedChildren = childrenArray.map((child, index) => render(child, VDOM, [...VDOMPointer, index], hooks));
-    return { ...elementAsRenderableVDOMElement, props: { children: renderedChildren, ...elementAsRenderableVDOMElement.props } };
+    setCurrentVDOMElement(
+      VDOMPointer,
+      createVDOMElement(elementAsRenderableVDOMElement),
+      VDOM,
+    );
+    const renderedChildren = childrenArray.map((child, index) =>
+      render(child, VDOM, [...VDOMPointer, index], hooks),
+    );
+    return {
+      ...elementAsRenderableVDOMElement,
+      props: {
+        children: renderedChildren,
+        ...elementAsRenderableVDOMElement.props,
+      },
+    };
   }
-  setCurrentVDOMElement(VDOMPointer, createVDOMElement(elementAsRenderableVDOMElement), VDOM);
+  setCurrentVDOMElement(
+    VDOMPointer,
+    createVDOMElement(elementAsRenderableVDOMElement),
+    VDOM,
+  );
   return elementAsRenderableVDOMElement;
-}
+};
 
 // should appear in chapter-2/step-1
 const renderPrimitive = (value, VDOM, VDOMPointer) => {
-  const elementAsRenderableVDOMElement = createPrimitiveVDOMElement(value, VDOMPointer);
-  setCurrentVDOMElement(VDOMPointer, createVDOMElement(elementAsRenderableVDOMElement), VDOM);
+  const elementAsRenderableVDOMElement = createPrimitiveVDOMElement(
+    value,
+    VDOMPointer,
+  );
+  setCurrentVDOMElement(
+    VDOMPointer,
+    createVDOMElement(elementAsRenderableVDOMElement),
+    VDOM,
+  );
   return elementAsRenderableVDOMElement;
 };
 
 // should appear in chapter-2/step-1
 const render = (element, VDOM, VDOMPointer, hooks) =>
-  isPrimitiveElementFromJSX(element) ?
-    renderPrimitive(element, VDOM, VDOMPointer) :
-    renderComponentElement(element, VDOM, VDOMPointer, hooks);
+  isPrimitiveElementFromJSX(element)
+    ? renderPrimitive(element, VDOM, VDOMPointer)
+    : renderComponentElement(element, VDOM, VDOMPointer, hooks);
 
 // should appear in chapter-2/step-1
 const rootRender = (element, hooks, vdom) => {
   let renderableVDOM = render(element, vdom, [], hooks);
   // Should appear in final
-  hooks.cleanHooks((VDOMPointer) => getVDOMElement(VDOMPointer, vdom.current) !== undefined);
+  hooks.cleanHooks(
+    VDOMPointer => getVDOMElement(VDOMPointer, vdom.current) !== undefined,
+  );
   return renderableVDOM;
 };
 
@@ -127,14 +166,13 @@ export const startRenderSubscription = (element, updateCallback) => {
   // Should appear in chapter-4/step-2
   let afterUpdate;
   // Should appear in chapter-4/step-2
-  const registerOnUpdatedCallback = (callback) => {
+  const registerOnUpdatedCallback = callback => {
     afterUpdate = callback;
   };
-  const update = (hooks) => {
+  const update = hooks => {
     const renderableVDOM = rootRender(element, hooks, vdom);
     // diff should appear in chapter-3/step-2
     const diff = getRenderableVDOMDiff(renderableVDOM, vdom);
-
 
     vdom.previous = vdom.current;
     vdom.current = [];
@@ -150,6 +188,4 @@ export const startRenderSubscription = (element, updateCallback) => {
   update(hooks);
 };
 
-export const {
-  __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED,
-} = React;
+export const { __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED } = React;
