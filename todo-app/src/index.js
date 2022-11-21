@@ -6,8 +6,6 @@ import reportWebVitals from './reportWebVitals';
 
 import { DOMHandlers } from 'my-own-react';
 
-
-
 /*
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -16,7 +14,6 @@ root.render(
   </React.StrictMode>
 );
 */
-
 
 const root = DOMHandlers.createRoot(document.getElementById('root'));
 root.render(<App />);
@@ -70,7 +67,6 @@ root.render(<div className="test" id="test" aria-hidden></div>);
   const root = DOMHandlers.createRoot(document.getElementById('root'));
 root.render(<div></div>);
 */
-
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))

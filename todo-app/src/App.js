@@ -4,7 +4,11 @@ import AddItem from './components/AddItem';
 import ToDos from './components/ToDos';
 import './App.css';
 
-const possibleTitles = ["Your ToDo's", "Super ToDo's", "To do - ba di ba di ba doo"];
+const possibleTitles = [
+  "Your ToDo's",
+  "Super ToDo's",
+  'To do - ba di ba di ba doo',
+];
 
 function StaticStateComponent({ text }) {
   const [state] = useState(text);
@@ -21,10 +25,12 @@ function StaticStateComponent2({ text }) {
 function Counter() {
   const [count, setCount] = useState(0);
 
-  return <div>
-    <span>The count is {count}</span>
-    <button onClick={() => setCount(countState => countState + 1)}>+</button>
-  </div>
+  return (
+    <div>
+      <span>The count is {count}</span>
+      <button onClick={() => setCount(countState => countState + 1)}>+</button>
+    </div>
+  );
 }
 
 function ComponentWithEffect({ titleIndex }) {
@@ -41,15 +47,15 @@ function App() {
   const [titleIndex, setTitleIndex] = useState(0);
   const [titles, setTitles] = useState(possibleTitles);
 
-  const deleteItem = (item) => {
-    setItems(existingItems => existingItems.filter(existingItem => existingItem !== item))
-  }
+  const deleteItem = item => {
+    setItems(existingItems =>
+      existingItems.filter(existingItem => existingItem !== item),
+    );
+  };
 
-  const addItem = (item) => {
-    setItems(items => [item, ...items])
-  }
-
-
+  const addItem = item => {
+    setItems(items => [item, ...items]);
+  };
 
   return (
     <div className="App">
@@ -65,13 +71,29 @@ function App() {
       </header>
       <div className="content">
         <div>{titles.map(title => title)}</div>
-        <button onClick={() => setTitles([...possibleTitles])}>Update Titles</button>
-        {(titleIndex % 2 === 0) && <StaticStateComponent text="StaticStateComponent" />}
+        <button onClick={() => setTitles([...possibleTitles])}>
+          Update Titles
+        </button>
+        {titleIndex % 2 === 0 && (
+          <StaticStateComponent text="StaticStateComponent" />
+        )}
         <StaticStateComponent text="StaticStateComponent2" />
-        {(titleIndex % 3 === 0) ? <StaticStateComponent text="StaticStateComponent" /> : <StaticStateComponent text="StaticStateComponent2" />}
+        {titleIndex % 3 === 0 ? (
+          <StaticStateComponent text="StaticStateComponent" />
+        ) : (
+          <StaticStateComponent text="StaticStateComponent2" />
+        )}
         {titleIndex % 3 !== 0 && <Counter />}
-        {titleIndex % 3 !== 0 && <ComponentWithEffect titleIndex={titleIndex} />}
-        <button onClick={() => setTitleIndex(current => (current + 1) % possibleTitles.length )}>Next title</button>
+        {titleIndex % 3 !== 0 && (
+          <ComponentWithEffect titleIndex={titleIndex} />
+        )}
+        <button
+          onClick={() =>
+            setTitleIndex(current => (current + 1) % possibleTitles.length)
+          }
+        >
+          Next title
+        </button>
         <AddItem onAddItem={addItem} />
         <ToDos items={items} deleteItem={deleteItem} />
       </div>
