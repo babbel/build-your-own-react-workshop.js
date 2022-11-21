@@ -5,6 +5,11 @@ import {
   findRootVDOMPointers,
   isPrimitiveElement
 } from './vdom-helpers';
+import {
+  diffType,
+  propsDiffType,
+  diffApplicationOrder
+} from './diff';
 
 // should appear in chapter-1/step-3
 const eventHandlersMap = {
@@ -186,12 +191,12 @@ const applyNodeInnerTextUpdate = ({ renderedElementsMap }, { VDOMPointer, payloa
 // should appear in chapter-4/step-1
 const applyProps = ({ renderedElementsMap }, { VDOMPointer, payload: propsChanged }) => {
   Object.entries(propsChanged).forEach(([key, [propDiffType, { oldValue, newValue }]]) => {
-    if (propDiffType === 'updated') {
+    if (propDiffType === propsDiffType.updated) {
       if (isEventHandlerProp(key)) {
         removeEventHandler(renderedElementsMap[VDOMPointer], { key, value: oldValue });
       }
       applyPropToHTMLElement({ key, value: newValue }, renderedElementsMap[VDOMPointer]);
-    } else if (propDiffType === 'removed') {
+    } else if (propDiffType === propsDiffType.removed) {
       removePropFromHTMLElement({ key, oldValue }, renderedElementsMap[VDOMPointer]);
     }
   });
@@ -199,15 +204,12 @@ const applyProps = ({ renderedElementsMap }, { VDOMPointer, payload: propsChange
 
 // should appear in chapter-4/step-1
 const diffApplicators = {
-  node_removed: applyNodeRemoved,
-  node_added: applyNodeAdded,
-  node_replaced: applyNodeReplaced,
-  node_innerTextUpdate: applyNodeInnerTextUpdate,
-  props: applyProps,
-}
-
-// Should appear in chapter-4/step-1
-const diffApplicationOrder = ['node_removed', 'node_added', 'node_replaced', 'node_innerTextUpdate', 'props'];
+  [diffType.nodeRemoved]: applyNodeRemoved,
+  [diffType.nodeAdded]: applyNodeAdded,
+  [diffType.nodeReplaced]: applyNodeReplaced,
+  [diffType.primitiveNodeUpdate]: applyNodeInnerTextUpdate,
+  [diffType.props]: applyProps,
+};
 
 // Should appear in chapter-4/step-1
 const applyDiff = (diff, renderedElementsMap, renderableVDOM) => {

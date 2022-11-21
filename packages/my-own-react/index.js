@@ -3,7 +3,6 @@ export { DOMHandlers } from './dom-handlers';
 export default React;
 
 import {
-  isPrimitiveElement,
   getVDOMElement,
   setCurrentVDOMElement,
   createVDOMElement,
@@ -16,6 +15,7 @@ import {
   useState
 } from './hooks';
 export { useEffect, useState };
+import { getRenderableVDOMDiff } from './diff';
 
 // export const useState = (initialState) => [typeof initialState === 'function' ? initialState() : initialState, () => {}];
 // export const useEffect = () => {};
@@ -117,106 +117,6 @@ const rootRender = (element, hooks, vdom) => {
   return renderableVDOM;
 };
 
-// Should appear in chapter-3/step-2
-const compareVDOMElement = (currentRenderableVDOMElement, vdom, parentPointer) => {
-  const prev = getVDOMElement(currentRenderableVDOMElement.VDOMPointer, vdom.previous);
-
-  // no change
-  if (!prev && !currentRenderableVDOMElement) {
-    return [];
-  }
-
-  // added element
-  if (!prev) {
-    return [{ VDOMPointer: currentRenderableVDOMElement.VDOMPointer, type: 'node_added', payload: { node: currentRenderableVDOMElement, parentPointer } }];
-  }
-
-  // Hopefully this becomes redundant
-  // removed element
-  if (!currentRenderableVDOMElement) {
-    return [{ VDOMPointer: currentRenderableVDOMElement.VDOMPointer, type: 'node_removed', payload: {} }];
-  }
-
-  const prevElement = prev.element;
-  const currElement = currentRenderableVDOMElement;
-
-  // Have different types
-  if (
-    typeof prevElement !== typeof currElement
-    || typeof (prevElement || {}).type !== typeof (currElement || {}).type
-  ) {
-    return [{ VDOMPointer: currentRenderableVDOMElement.VDOMPointer, type: 'node_replaced', payload: { newNode: currentRenderableVDOMElement, oldNode: prevElement, parentPointer } }];
-  }
-
-  // Both same type 👇
-
-  // If both primitive
-  if (
-    isPrimitiveElement(prevElement) && isPrimitiveElement(currElement)
-  ) {
-    if (prevElement.value !== currElement.value) {
-      return [{ VDOMPointer: currentRenderableVDOMElement.VDOMPointer, type: 'node_innerTextUpdate', payload: { newElement: currElement } }];
-    }
-
-    // no change
-    return [];
-  }
-
-  const changedProps = {};
-  // Compare props
-  const keys = Array.from(new Set([
-    ...Object.keys(prevElement.props),
-    ...Object.keys(currElement.props),
-  ]));
-  for (var index = 0; index < keys.length; index++) {
-    const key = keys[index];
-    if (key === 'children') {
-      continue;
-    }
-
-    // seperating this case just in case we may wanna delete the prop directly
-    if (!(key in currElement.props)) {
-      changedProps[key] = ['removed', { oldValue: prevElement.props[key] }];
-      continue;
-    }
-
-    if (currElement.props[key] !== prevElement.props[key]) {
-      changedProps[key] = ['updated', { newValue: currElement.props[key], oldValue: prevElement.props[key] }];
-    }
-  }
-
-  let diff = [];
-  // conditional case to keep output clean
-  if (Object.keys(changedProps).length > 0) {
-    diff.push(
-      { VDOMPointer: currentRenderableVDOMElement.VDOMPointer, type: 'props', payload: changedProps }
-    );
-  }
-
-  // Recursive into children
-  const prevChildren = prev.renderedChildren || [];
-  const currChildren = currentRenderableVDOMElement.props.children || [];
-  const maxIndex = Math.max(prevChildren.length, currChildren.length);
-  for (let index = 0; index < maxIndex; index++) {
-    const currChild = currChildren[index];
-    if (!currChild) {
-      diff.push({ VDOMPointer: [...currentRenderableVDOMElement.VDOMPointer, index], type: 'node_removed', payload: {} })
-      continue;
-    }
-    const res = compareVDOMElement(currChild, vdom, currentRenderableVDOMElement.VDOMPointer);
-    if (res) {
-      diff = [ ...diff, ...res ];
-    }
-  }
-
-  return diff;
-};
-
-// Should appear in chapter-3/step-2
-const getVDOMDiff = (renderableVDOM, vdom) => {
-  return compareVDOMElement(renderableVDOM, vdom);
-};
-
 // interface should appear in chapter-2/step-1
 export const startRenderSubscription = (element, updateCallback) => {
   let vdom = {
@@ -232,7 +132,7 @@ export const startRenderSubscription = (element, updateCallback) => {
   const update = (hooks) => {
     const renderableVDOM = rootRender(element, hooks, vdom);
     // diff should appear in chapter-3/step-2
-    const diff = getVDOMDiff(renderableVDOM, vdom);
+    const diff = getRenderableVDOMDiff(renderableVDOM, vdom);
 
 
     vdom.previous = vdom.current;
