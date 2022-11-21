@@ -150,24 +150,19 @@ const findByDomPointer = (dom, domPointer) => {
 }
 
 // should appear in chapter-4/step-1
-const isChildVDOMPointerOf = (childVDOMPointer, VDOMPointer) => {
-  // the root level pointer is [] and is not a child of anything
-  if (childVDOMPointer.length === 0) {
-    return false;
-  }
+const isChildVDOMPointer = (childVDOMPointer, parentVDOMPointer) => {
   // everything is a child of the root level pointer []
-  if (VDOMPointer.length === 0) {
+  if (parentVDOMPointer.length === 0) {
     return true;
   }
-  // for a pointer to a component at 0,1,2
-  // and rendered children 0,1,2,0 and 0,1,2,1,0
-  // we want to remove those children
-  return new RegExp(`${VDOMPointer},(\\d+,?)+$`).test(childVDOMPointer);
+  // to find out if a specific pointer is a child of another pointer, we can
+  // verify whether it contains numbers within the parent pointer
+  return new RegExp(`${parentVDOMPointer},(\\d+,?)+`).test(childVDOMPointer);
 };
 
 // should appear in chapter-4/step-1
 const findRenderedChildrenByVDOMPointer = (renderedElementsMap, VDOMPointer) => {
-  return Object.entries(renderedElementsMap).filter(([pointer]) => isChildVDOMPointerOf(pointer, VDOMPointer));
+  return Object.entries(renderedElementsMap).filter(([pointer]) => isChildVDOMPointer(pointer, VDOMPointer));
 };
 
 // should appear in chapter-4/step-1
@@ -177,9 +172,9 @@ const findRootVDOMPointers = (pointers) => {
   }
   let rootPointers = [pointers[0]];
   for (const pointer of pointers.slice(1)) {
-    const rootPointersOfCurrent = rootPointers.filter(rootPointer => isChildVDOMPointerOf(pointer, rootPointer));
+    const rootPointersOfCurrent = rootPointers.filter(rootPointer => isChildVDOMPointer(pointer, rootPointer));
     if (rootPointersOfCurrent.length === 0) {
-      const newRootPointers = rootPointers.filter(rootPointer => !isChildVDOMPointerOf(rootPointer, pointer));
+      const newRootPointers = rootPointers.filter(rootPointer => !isChildVDOMPointer(rootPointer, pointer));
       rootPointers = [...newRootPointers, pointer];
     }
   }
@@ -195,6 +190,9 @@ const applyNodeRemoved = ({ renderedElementsMap }, { VDOMPointer }) => {
       delete renderedElementsMap[pointer];
     });
   } else {
+    // for a pointer to a component at 0,1,2
+    // and rendered children 0,1,2,0 and 0,1,2,1,0
+    // we want to remove those children
     const allChildren = findRenderedChildrenByVDOMPointer(renderedElementsMap, VDOMPointer);
     const rootVDOMPointers = findRootVDOMPointers(allChildren.map(([pointer]) => pointer));
     rootVDOMPointers.forEach((pointer) => {
