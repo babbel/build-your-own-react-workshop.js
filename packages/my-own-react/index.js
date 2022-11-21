@@ -79,9 +79,10 @@ const renderComponentElement = (element, VDOM, VDOMPointer, hooks) => {
   const isFirstRender = previousDOMElement === undefined || previousDOMElement.type !== element.type;
   const elementAsRenderableVDOMElement = createRenderableVDOMElement( props, type, VDOMPointer);
   if (typeof type === 'function') {
+    const FunctionalComponent = type;
     // should appear in chapter-2/step-2
     hooks.registerHooks(VDOMPointer, isFirstRender);
-    const renderedElement = type({ children, ...props });
+    const renderedElement = FunctionalComponent({ children, ...props });
     setCurrentVDOMElement(VDOMPointer, createVDOMElement(elementAsRenderableVDOMElement), VDOM);
     const renderedElementDOM = render(renderedElement, VDOM, [...VDOMPointer, 0], hooks);
     return renderedElementDOM;
