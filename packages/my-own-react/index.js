@@ -150,10 +150,6 @@ const render = (element, VDOM, VDOMPointer, hooks) =>
 // should appear in chapter-2/step-1
 const rootRender = (element, hooks, vdom) => {
   let renderableVDOM = render(element, vdom, [], hooks);
-  // Should appear in final
-  hooks.cleanHooks(
-    VDOMPointer => getVDOMElement(VDOMPointer, vdom.current) !== undefined,
-  );
   return renderableVDOM;
 };
 

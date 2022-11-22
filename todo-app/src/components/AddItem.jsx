@@ -13,7 +13,6 @@ const AddItem = ({ onAddItem }) => {
     onAddItem(item);
     setItem('');
   };
-  console.log({ item });
   return (
     <form className="addSection" onSubmit={handleOnAdd}>
       <label className="inputLabel" htmlFor="itemInput">

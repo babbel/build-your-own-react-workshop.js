@@ -83,27 +83,23 @@ const makeMakeUseEffect = (registerOnUpdatedCallback, hooksMap) => {
       hooksMapPointer.effect = [];
     }
     return (effectCallback, dependencies) => {
+      // START HERE
+      // This function is the only one you should need to modify for clean-ups!
       const effectIndex = effectIndexRef.current;
       const previousEffect = hooksMapPointer.effect[effectIndex] || {};
-      // Should appear in final
-      const { cleanUp = () => {} } = previousEffect;
       effectIndexRef.current += 1;
       if (areDependenciesEqual(previousEffect.dependencies, dependencies)) {
         return;
       }
-      // Should appear in final
-      cleanUp();
       hooksMapPointer.effect[effectIndex] = {
         dependencies: [...dependencies],
-        // Should appear in final
-        cleanUp: () => {},
       };
       registerEffectForNextRender(() => {
-        // Should appear in final
-        hooksMapPointer.effect[effectIndex].cleanUp =
-          effectCallback() || (() => {});
-        // Should appear in chapter-4/step-2
-        // effectCallback()
+        // Here we will save the cleanUp to be called later in our effect structure
+        // but where does the cleanUp come from?
+        // hooksMapPointer.effect[effectIndex].cleanUp = ...
+
+        effectCallback();
       });
     };
   };
@@ -122,21 +118,6 @@ const makeRegisterHooks =
     globalHooksReplacer.useEffect = useEffect;
   };
 
-// Should appear in final
-const makeCleanHooks = hooksMap => isElementStillMounted => {
-  Object.keys(hooksMap)
-    .map(vdomPointerKeyToVDOMPointerArray)
-    .forEach(VDOMpointer => {
-      // TODO double check if this is safe as there might still be something in the VDOM at this spot
-      if (isElementStillMounted(VDOMpointer)) {
-        return;
-      }
-      const hooks = hooksMap[VDOMpointer];
-      hooks.effect.forEach(effect => effect.cleanUp());
-      delete hooksMap[VDOMpointer];
-    });
-};
-
 // Should appear in chapter-4/step-2
 export const createHooks = (onUpdate, registerOnUpdatedCallback) => {
   // interface should appear in chapter-2/step-1
@@ -153,8 +134,6 @@ export const createHooks = (onUpdate, registerOnUpdatedCallback) => {
     makeUseState,
     makeUseEffect,
   );
-  // Should appear in final
-  hooks.current = { registerHooks, cleanHooks: makeCleanHooks(hooksMap) };
-  // hooks.current = { registerHooks };
+  hooks.current = { registerHooks };
   return hooks.current;
 };
