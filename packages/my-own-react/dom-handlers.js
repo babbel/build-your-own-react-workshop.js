@@ -1,9 +1,6 @@
 import { startRenderSubscription } from '.';
-import {
-  isPrimitiveElement,
-} from './vdom-helpers';
+import { isPrimitiveElement } from './vdom-helpers';
 
-// should appear in chapter-1/step-3
 const eventHandlersMap = {
   onClick: 'click',
   // for the `change` event to trigger, the user is required to leave the field and come back
@@ -12,12 +9,10 @@ const eventHandlersMap = {
   onSubmit: 'submit',
 };
 const isEventHandlerProp = key => Object.keys(eventHandlersMap).includes(key);
-// should appear in chapter-1/step-3
 const addEventHandler = (domElement, { key, value }) => {
   domElement.addEventListener(eventHandlersMap[key], value);
 };
 
-// should appear in chapter-1/step-3
 const applyPropToHTMLElement = ({ key, value }, element) => {
   if (isEventHandlerProp(key)) {
     addEventHandler(element, { key, value });
@@ -26,16 +21,16 @@ const applyPropToHTMLElement = ({ key, value }, element) => {
   element[key] = value;
 };
 
-const renderComponentElementToHtml = (
-  { props: { children, ...props }, type }
-) => {
-  // should appear in chapter-1/step-2
+const renderComponentElementToHtml = ({
+  props: { children, ...props },
+  type,
+}) => {
   const domElement = document.createElement(type);
-  // should appear in chapter-1/step-3
+
   Object.entries(props).forEach(([key, value]) => {
     applyPropToHTMLElement({ key, value }, domElement);
   });
-  // should appear in chapter-1/step-6
+
   if (children) {
     const childrenAsDomElement = children.map(child =>
       renderElementToHtml(child),
@@ -46,11 +41,10 @@ const renderComponentElementToHtml = (
       }
     });
   }
-  // should appear in chapter-1/step-2
+
   return domElement;
 };
 
-// should appear in chapter-1/step-6
 const renderPrimitiveToHtml = ({ value }) => {
   switch (typeof value) {
     case 'string':
@@ -65,7 +59,7 @@ const renderPrimitiveToHtml = ({ value }) => {
   }
 };
 
-const renderElementToHtml = (element) => {
+const renderElementToHtml = element => {
   const renderedElement = isPrimitiveElement(element)
     ? renderPrimitiveToHtml(element)
     : renderComponentElementToHtml(element);
@@ -76,7 +70,7 @@ const createRoot = rootElement => ({
   rootElement,
   render: rootChild => {
     let lastChild;
-    startRenderSubscription(rootChild, (renderableVDOM) => {
+    startRenderSubscription(rootChild, renderableVDOM => {
       let rootChildAsHTML;
       if (!lastChild) {
         rootChildAsHTML = renderElementToHtml(renderableVDOM);
@@ -86,11 +80,6 @@ const createRoot = rootElement => ({
         rootElement.replaceChild(rootChildAsHTML, lastChild);
       }
       lastChild = rootChildAsHTML;
-      /* version before chapter-2/step-1
-     // should appear in chapter-1/step-2
-      const rootChildAsHTML = renderElementToHtml(renderableVDOM);
-      rootElement.appendChild(rootChildAsHTML);
-     */
     });
   },
 });

@@ -12,10 +12,8 @@ import {
 import { createHooks, useState } from './hooks';
 export { useState };
 
-// export const useState = (initialState) => [typeof initialState === 'function' ? initialState() : initialState, () => {}];
 export const useEffect = () => {};
 
-// should appear in chapter-2/step-1
 /*
 
 VDOM with pointer idea
@@ -55,7 +53,7 @@ const VDOM = {
 }
 
 We can then create "pointer"s to access specific children based on their location in the tree, for example to access "Hello world!",
-we need to dig into the first element's children picking the first child "span", then pick the second child from that element which is "Hello world!". 
+we need to dig into the first element's children picking the first child "span", then pick the second child from that element which is "Hello world!".
 // So a pointer to it can look like:
 const pointerToHelloWorld = [0, 1];
 const element = getVDOMElement(pointerToHelloWorld, VDOM); // [`Hello world!`]
@@ -63,10 +61,8 @@ And you access the element itself by extracting taking the element from it, e.g.
 const { element: button } = getVDOMElement([1]], VDOM); // button
 */
 
-// should appear in chapter-2/step-1
 export const isPrimitiveElementFromJSX = element => typeof element !== 'object';
 
-// should appear in chapter-2/step-1
 const renderComponentElement = (element, VDOM, VDOMPointer, hooks) => {
   const {
     props: { children, ...props },
@@ -125,7 +121,6 @@ const renderComponentElement = (element, VDOM, VDOMPointer, hooks) => {
   return elementAsRenderableVDOMElement;
 };
 
-// should appear in chapter-2/step-1
 const renderPrimitive = (value, VDOM, VDOMPointer) => {
   const elementAsRenderableVDOMElement = createPrimitiveVDOMElement(
     value,
@@ -139,13 +134,11 @@ const renderPrimitive = (value, VDOM, VDOMPointer) => {
   return elementAsRenderableVDOMElement;
 };
 
-// should appear in chapter-2/step-1
 const render = (element, VDOM, VDOMPointer, hooks) =>
   isPrimitiveElementFromJSX(element)
     ? renderPrimitive(element, VDOM, VDOMPointer)
     : renderComponentElement(element, VDOM, VDOMPointer, hooks);
 
-// should appear in chapter-2/step-1
 const rootRender = (element, hooks, vdom) => {
   let renderableVDOM = render(element, vdom, [], hooks);
   return renderableVDOM;
