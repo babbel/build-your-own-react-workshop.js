@@ -1,6 +1,5 @@
 const isPrimitiveElement = element => typeof element !== 'object';
 
-// should appear in chapter-1/step-3
 const eventHandlersMap = {
   onClick: 'click',
   // for the `change` event to trigger, the user is required to leave the field and come back
@@ -9,12 +8,11 @@ const eventHandlersMap = {
   onSubmit: 'submit',
 };
 const isEventHandlerProp = key => Object.keys(eventHandlersMap).includes(key);
-// should appear in chapter-1/step-3
+
 const addEventHandler = (domElement, { key, value }) => {
   domElement.addEventListener(eventHandlersMap[key], value);
 };
 
-// should appear in chapter-1/step-3
 const applyPropToHTMLElement = ({ key, value }, element) => {
   if (isEventHandlerProp(key)) {
     addEventHandler(element, { key, value });
@@ -23,12 +21,12 @@ const applyPropToHTMLElement = ({ key, value }, element) => {
   element[key] = value;
 };
 
-const renderComponentElementToHtml = (
-  { props: { children, ...props }, type }
-) => {
-  // should appear in chapter-1/step-2
+const renderComponentElementToHtml = ({
+  props: { children, ...props },
+  type,
+}) => {
   const domElement = document.createElement(type);
-  // should appear in chapter-1/step-3
+
   Object.entries(props).forEach(([key, value]) => {
     applyPropToHTMLElement({ key, value }, domElement);
   });
@@ -36,12 +34,11 @@ const renderComponentElementToHtml = (
     // START HERE
     // We should find a way to handle children here
   }
-  // should appear in chapter-1/step-2
+
   return domElement;
 };
 
-// should appear in chapter-1/step-6
-const renderPrimitiveToHtml = (value) => {
+const renderPrimitiveToHtml = value => {
   switch (typeof value) {
     case 'string':
     case 'number':
@@ -55,7 +52,7 @@ const renderPrimitiveToHtml = (value) => {
   }
 };
 
-const renderElementToHtml = (element) => {
+const renderElementToHtml = element => {
   const renderedElement = isPrimitiveElement(element)
     ? renderPrimitiveToHtml(element)
     : renderComponentElementToHtml(element);
