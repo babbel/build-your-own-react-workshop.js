@@ -78,7 +78,6 @@ const createRoot = rootElement => ({
     let lastChild;
     startRenderSubscription(rootChild, (renderableVDOM) => {
       let rootChildAsHTML;
-      // update should appear in chapter-2/step-1
       if (!lastChild) {
         rootChildAsHTML = renderElementToHtml(renderableVDOM);
         rootElement.appendChild(rootChildAsHTML);

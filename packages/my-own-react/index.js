@@ -84,7 +84,6 @@ const renderComponentElement = (element, VDOM, VDOMPointer, hooks) => {
   );
   if (typeof type === 'function') {
     const FunctionalComponent = type;
-    // should appear in chapter-2/step-2
     hooks.registerHooks(VDOMPointer, isFirstRender);
     const renderedElement = FunctionalComponent({ children, ...props });
     setCurrentVDOMElement(
@@ -152,7 +151,6 @@ const rootRender = (element, hooks, vdom) => {
   return renderableVDOM;
 };
 
-// interface should appear in chapter-2/step-1
 export const startRenderSubscription = (element, updateCallback) => {
   let vdom = {
     previous: {},

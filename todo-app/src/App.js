@@ -19,7 +19,6 @@ function ComponentWithEffect({ numberOfTodos }) {
 }
 
 function App() {
-  const [counter, setCounter] = useState(0);
   const [items, setItems] = useLocalStorage('todoItems', []);
 
   const deleteItem = item => {
@@ -45,10 +44,6 @@ function App() {
         </a>
       </header>
       <div className="content">
-        <div className="counter">
-          Counter: {`${counter}`}
-          <button onClick={() => setCounter(count => count + 1)}>+</button>
-        </div>
         <ComponentWithEffect numberOfTodos={items.length} />
         <AddItem onAddItem={addItem} />
         <ToDos items={items} deleteItem={deleteItem} />
