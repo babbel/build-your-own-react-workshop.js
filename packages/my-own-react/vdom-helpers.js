@@ -80,7 +80,7 @@ export const isChildVDOMPointer = (childVDOMPointer, parentVDOMPointer) => {
   }
   // to find out if a specific pointer is a child of another pointer, we can
   // verify whether it contains numbers within the parent pointer
-  return new RegExp(`${parentVDOMPointer},(\\d+,?)+`).test(childVDOMPointer);
+  return new RegExp(`^${parentVDOMPointer},(\\d+,?)+`).test(childVDOMPointer);
 };
 
 // should appear in chapter-4/step-1
