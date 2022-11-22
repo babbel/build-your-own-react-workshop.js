@@ -17,16 +17,23 @@ const isStatesDiffer = (prev, next) => {
 // should appear in chapter-2/step-2
 const createMakeUseState =
   (onUpdate, hooksMap) => (VDOMPointer, isFirstRender) => {
-    // stateIndexRef should appear in chapter-3/step-1
-    let stateIndexRef = { current: 0 };
     let hooksMapPointer = hooksMap[VDOMPointer];
-    if (isFirstRender) {
-      hooksMapPointer.state = [];
-    }
     return initialState => {
-      // stateIndexRef should appear in chapter-3/step-1
-      const stateIndex = stateIndexRef.current;
-      stateIndexRef.current += 1;
+      // START HERE
+      // Here we now need to know which state we are trying to take care of.
+      // The way React keeps track of those state is by order of calls in
+      // the component, so we should keep track of the index of each useState.
+      // For example with a component like this:
+      /*
+      const ComponentWithTwoStates = () => {
+        const [counter, setCounter] = useState(0);
+        const [userHasClicked, setUserHasClicked] = useState(false);
+      }
+
+      we would want to keep two states, at the first index the counter state
+      at the second index, the userHasClicked.
+      NB: their identification within this function is purely based on their index
+      */ 
       if (isFirstRender) {
         const computedInitialState =
           typeof initialState === 'function' ? initialState() : initialState;
@@ -35,8 +42,7 @@ const createMakeUseState =
             typeof newStateOrCb === 'function'
               ? newStateOrCb
               : () => newStateOrCb;
-          // stateIndex should appear in chapter-3/step-1
-          const ownState = hooksMapPointer.state[stateIndex];
+          const ownState = hooksMapPointer.state;
           const previousState = ownState[0];
           const currentState = newStateFn(previousState);
           const shouldUpdateState = isStatesDiffer(previousState, currentState);
@@ -46,11 +52,9 @@ const createMakeUseState =
             onUpdate();
           }
         };
-        // stateIndex should appear in chapter-3/step-1
-        hooksMapPointer.state[stateIndex] = [computedInitialState, setState];
+        hooksMapPointer.state = [computedInitialState, setState];
       }
-      // stateIndex should appear in chapter-3/step-1
-      return hooksMapPointer.state[stateIndex];
+      return hooksMapPointer.state;
     };
   };
 

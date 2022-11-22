@@ -42,16 +42,6 @@ export const createPrimitiveVDOMElement = (value, VDOMPointer) => ({
   VDOMPointer,
 });
 
-// diff should appear in chapter-3/step-2
-export const vdomPointerKeyToVDOMPointerArray = pointerAsString => {
-  // The empty array ends up with an empty string, so this needs extra care when transforming
-  if (pointerAsString === '') {
-    return [];
-  }
-  // All the others end up split by `,` so we can split them back and transform the string to a number
-  return pointerAsString.split(',').map(s => parseInt(s));
-};
-
 export const findRenderableByVDOMPointer = (renderableVDOM, domPointer) => {
   if (!renderableVDOM) {
     return;

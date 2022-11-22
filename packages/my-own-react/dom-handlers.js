@@ -2,7 +2,6 @@ import { startRenderSubscription } from '.';
 import {
   isPrimitiveElement,
 } from './vdom-helpers';
-import { diffType, propsDiffType, diffApplicationOrder } from './diff';
 
 // should appear in chapter-1/step-3
 const eventHandlersMap = {

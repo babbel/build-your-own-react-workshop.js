@@ -11,7 +11,6 @@ import {
 } from './vdom-helpers';
 import { createHooks, useState } from './hooks';
 export { useState };
-import { getRenderableVDOMDiff } from './diff';
 
 // export const useState = (initialState) => [typeof initialState === 'function' ? initialState() : initialState, () => {}];
 export const useEffect = () => {};
@@ -161,13 +160,11 @@ export const startRenderSubscription = (element, updateCallback) => {
   };
   const update = hooks => {
     const renderableVDOM = rootRender(element, hooks, vdom);
-    // diff should appear in chapter-3/step-2
-    const diff = getRenderableVDOMDiff(renderableVDOM, vdom);
 
     vdom.previous = vdom.current;
     vdom.current = [];
 
-    updateCallback(renderableVDOM, diff);
+    updateCallback(renderableVDOM);
   };
   const hooks = createHooks(update);
   update(hooks);

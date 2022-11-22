@@ -31,3 +31,10 @@
   color: white;
   font-weight: bold;
 }
+
+.counter {
+  margin: 0 auto;
+  margin-bottom: 30px;
+  max-width: 800px;
+  padding: 10px;
+}
