@@ -13,6 +13,34 @@ export const propsDiffType = {
   removed: 'removed',
 };
 
+const createNodeAddedPayload = (currentRenderableVDOMElement, parentPointer) => ({
+  VDOMPointer: currentRenderableVDOMElement.VDOMPointer,
+  type: diffType.nodeAdded,
+  payload: { node: currentRenderableVDOMElement, parentPointer },
+});
+
+const createNodeRemoved = (currentRenderableVDOMElement) => ({
+  VDOMPointer: currentRenderableVDOMElement.VDOMPointer,
+  type: diffType.nodeRemoved,
+  payload: {},
+});
+
+const createNodeReplaced = (currentRenderableVDOMElement, oldNode, parentPointer) => ({
+  VDOMPointer: currentRenderableVDOMElement.VDOMPointer,
+  type: diffType.nodeReplaced,
+  payload: {
+    newNode: currentRenderableVDOMElement,
+    oldNode,
+    parentPointer,
+  },
+});
+
+const createPrimitiveNodeUpdate = (currentRenderableVDOMElement, newElement) => ({
+  VDOMPointer: currentRenderableVDOMElement.VDOMPointer,
+  type: diffType.primitiveNodeUpdate,
+  payload: { newElement },
+});
+
 export const diffApplicationOrder = [
   diffType.nodeRemoved,
   diffType.nodeAdded,
@@ -37,27 +65,17 @@ export const getRenderableVDOMDiff = (
     return [];
   }
 
-  // added element
   if (!prev) {
-    return [
-      {
-        VDOMPointer: currentRenderableVDOMElement.VDOMPointer,
-        type: diffType.nodeAdded,
-        payload: { node: currentRenderableVDOMElement, parentPointer },
-      },
-    ];
+    // START HERE
+    // What type of diff is this?
+    return [];
   }
 
-  // Hopefully this becomes redundant
-  // removed element
-  if (!currentRenderableVDOMElement) {
-    return [
-      {
-        VDOMPointer: currentRenderableVDOMElement.VDOMPointer,
-        type: diffType.nodeRemoved,
-        payload: {},
-      },
-    ];
+  // DON'T FORGET
+  // Under what condition is a node considered removed?
+  const TODO_REPLACE_ME_WITH_REAL_CONDITION = false;
+  if (TODO_REPLACE_ME_WITH_REAL_CONDITION) {
+    return [createNodeRemoved(currentRenderableVDOMElement)];
   }
 
   const prevElement = prev.element;
@@ -68,17 +86,7 @@ export const getRenderableVDOMDiff = (
     typeof prevElement !== typeof currElement ||
     typeof (prevElement || {}).type !== typeof (currElement || {}).type
   ) {
-    return [
-      {
-        VDOMPointer: currentRenderableVDOMElement.VDOMPointer,
-        type: diffType.nodeReplaced,
-        payload: {
-          newNode: currentRenderableVDOMElement,
-          oldNode: prevElement,
-          parentPointer,
-        },
-      },
-    ];
+    return [createNodeReplaced(currentRenderableVDOMElement, prevElement, parentPointer)];
   }
 
   // Both same type 👇
@@ -86,13 +94,7 @@ export const getRenderableVDOMDiff = (
   // If both primitive
   if (isPrimitiveElement(prevElement) && isPrimitiveElement(currElement)) {
     if (prevElement.value !== currElement.value) {
-      return [
-        {
-          VDOMPointer: currentRenderableVDOMElement.VDOMPointer,
-          type: diffType.primitiveNodeUpdate,
-          payload: { newElement: currElement },
-        },
-      ];
+      return [createPrimitiveNodeUpdate(currentRenderableVDOMElement, currElement)];
     }
 
     // no change
@@ -147,12 +149,10 @@ export const getRenderableVDOMDiff = (
   for (let index = 0; index < maxIndex; index++) {
     const currChild = currChildren[index];
     if (!currChild) {
-      diff.push({
-        VDOMPointer: [...currentRenderableVDOMElement.VDOMPointer, index],
-        type: diffType.nodeRemoved,
-        payload: {},
-      });
-      continue;
+      // DON'T FORGET
+      // What does it mean if we don't have a child
+      // at the current position?
+      throw new Error('We need to handle this case as otherwise the recursion will crash');
     }
     const res = getRenderableVDOMDiff(
       currChild,
