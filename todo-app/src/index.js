@@ -15,10 +15,11 @@ root.render(
 );
 */
 
+/*
 const root = DOMHandlers.createRoot(document.getElementById('root'));
 root.render(<App />);
 
-/*
+
 const SimpleTest = () => (
   <div className="test" aria-hidden>
     <span>Hello World!</span>
@@ -51,11 +52,14 @@ root.render(<Test message="Hello World 2!" />);
 const root = DOMHandlers.createRoot(document.getElementById('root'));
 root.render(<SimpleTest />);
 
+*/
+
 const root = DOMHandlers.createRoot(document.getElementById('root'));
 root.render(<div className="test">
   <span>Hello Test!</span>
 </div>);
 
+/*
 const root = DOMHandlers.createRoot(document.getElementById('root'));
 root.render(<div className="test">
   Hello Test!

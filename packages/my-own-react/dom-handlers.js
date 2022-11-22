@@ -1,7 +1,4 @@
-import { getRenderableVDOM } from '.';
-import {
-  isPrimitiveElement,
-} from './vdom-helpers';
+const isPrimitiveElement = element => typeof element !== 'object';
 
 // should appear in chapter-1/step-3
 const eventHandlersMap = {
@@ -35,23 +32,16 @@ const renderComponentElementToHtml = (
   Object.entries(props).forEach(([key, value]) => {
     applyPropToHTMLElement({ key, value }, domElement);
   });
-  // should appear in chapter-1/step-6
   if (children) {
-    const childrenAsDomElement = children.map(child =>
-      renderElementToHtml(child),
-    );
-    childrenAsDomElement.forEach(childElement => {
-      if (childElement) {
-        domElement.appendChild(childElement);
-      }
-    });
+    // START HERE
+    // We should find a way to handle children here
   }
   // should appear in chapter-1/step-2
   return domElement;
 };
 
 // should appear in chapter-1/step-6
-const renderPrimitiveToHtml = ({ value }) => {
+const renderPrimitiveToHtml = (value) => {
   switch (typeof value) {
     case 'string':
     case 'number':
@@ -75,8 +65,7 @@ const renderElementToHtml = (element) => {
 const createRoot = rootElement => ({
   rootElement,
   render: rootChild => {
-    const renderableVDOM = getRenderableVDOM(rootChild);
-    const rootChildAsHTML = renderElementToHtml(renderableVDOM);
+    const rootChildAsHTML = renderElementToHtml(rootChild);
     rootElement.appendChild(rootChildAsHTML);
   },
 });
