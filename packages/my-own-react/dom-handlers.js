@@ -1,4 +1,4 @@
-import { startRenderSubscription } from '.';
+import { getRenderableVDOM } from '.';
 import {
   isPrimitiveElement,
 } from './vdom-helpers';
@@ -75,23 +75,9 @@ const renderElementToHtml = (element) => {
 const createRoot = rootElement => ({
   rootElement,
   render: rootChild => {
-    let lastChild;
-    startRenderSubscription(rootChild, (renderableVDOM) => {
-      let rootChildAsHTML;
-      if (!lastChild) {
-        rootChildAsHTML = renderElementToHtml(renderableVDOM);
-        rootElement.appendChild(rootChildAsHTML);
-      } else {
-        rootChildAsHTML = renderElementToHtml(renderableVDOM);
-        rootElement.replaceChild(rootChildAsHTML, lastChild);
-      }
-      lastChild = rootChildAsHTML;
-      /* version before chapter-2/step-1
-     // should appear in chapter-1/step-2
-      const rootChildAsHTML = renderElementToHtml(renderableVDOM);
-      rootElement.appendChild(rootChildAsHTML);
-     */
-    });
+    const renderableVDOM = getRenderableVDOM(rootChild);
+    const rootChildAsHTML = renderElementToHtml(renderableVDOM);
+    rootElement.appendChild(rootChildAsHTML);
   },
 });
 

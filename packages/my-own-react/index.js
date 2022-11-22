@@ -3,19 +3,15 @@ export { DOMHandlers } from './dom-handlers';
 export default React;
 
 import {
-  getVDOMElement,
   setCurrentVDOMElement,
   createVDOMElement,
   createRenderableVDOMElement,
   createPrimitiveVDOMElement,
 } from './vdom-helpers';
-import { createHooks, useState } from './hooks';
-export { useState };
 
-// export const useState = (initialState) => [typeof initialState === 'function' ? initialState() : initialState, () => {}];
+export const useState = (initialState) => [typeof initialState === 'function' ? initialState() : initialState, () => {}];
 export const useEffect = () => {};
 
-// should appear in chapter-2/step-1
 /*
 
 VDOM with pointer idea
@@ -67,16 +63,11 @@ const { element: button } = getVDOMElement([1]], VDOM); // button
 export const isPrimitiveElementFromJSX = element => typeof element !== 'object';
 
 // should appear in chapter-2/step-1
-const renderComponentElement = (element, VDOM, VDOMPointer, hooks) => {
+const renderComponentElement = (element, VDOM, VDOMPointer) => {
   const {
     props: { children, ...props },
     type,
   } = element;
-  const previousDOMElement = (getVDOMElement(VDOMPointer, VDOM.previous) || {})
-    .element;
-  const isFirstRender =
-    previousDOMElement === undefined ||
-    previousDOMElement.type !== element.type;
   const elementAsRenderableVDOMElement = createRenderableVDOMElement(
     props,
     type,
@@ -84,20 +75,8 @@ const renderComponentElement = (element, VDOM, VDOMPointer, hooks) => {
   );
   if (typeof type === 'function') {
     const FunctionalComponent = type;
-    hooks.registerHooks(VDOMPointer, isFirstRender);
-    const renderedElement = FunctionalComponent({ children, ...props });
-    setCurrentVDOMElement(
-      VDOMPointer,
-      createVDOMElement(elementAsRenderableVDOMElement),
-      VDOM,
-    );
-    const renderedElementDOM = render(
-      renderedElement,
-      VDOM,
-      [...VDOMPointer, 0],
-      hooks,
-    );
-    return renderedElementDOM;
+    // START HERE
+    // How can we render a functional component?
   }
   if (typeof children !== 'undefined') {
     const childrenArray = Array.isArray(children) ? children : [children];
@@ -107,7 +86,7 @@ const renderComponentElement = (element, VDOM, VDOMPointer, hooks) => {
       VDOM,
     );
     const renderedChildren = childrenArray.map((child, index) =>
-      render(child, VDOM, [...VDOMPointer, index], hooks),
+      render(child, VDOM, [...VDOMPointer, index]),
     );
     return {
       ...elementAsRenderableVDOMElement,
@@ -140,32 +119,23 @@ const renderPrimitive = (value, VDOM, VDOMPointer) => {
 };
 
 // should appear in chapter-2/step-1
-const render = (element, VDOM, VDOMPointer, hooks) =>
+const render = (element, VDOM, VDOMPointer) =>
   isPrimitiveElementFromJSX(element)
     ? renderPrimitive(element, VDOM, VDOMPointer)
-    : renderComponentElement(element, VDOM, VDOMPointer, hooks);
+    : renderComponentElement(element, VDOM, VDOMPointer);
 
 // should appear in chapter-2/step-1
-const rootRender = (element, hooks, vdom) => {
-  let renderableVDOM = render(element, vdom, [], hooks);
+const rootRender = (element, vdom) => {
+  let renderableVDOM = render(element, vdom, []);
   return renderableVDOM;
 };
 
-export const startRenderSubscription = (element, updateCallback) => {
+export const getRenderableVDOM = (element) => {
   let vdom = {
-    previous: {},
     current: {},
   };
-  const update = hooks => {
-    const renderableVDOM = rootRender(element, hooks, vdom);
-
-    vdom.previous = vdom.current;
-    vdom.current = [];
-
-    updateCallback(renderableVDOM);
-  };
-  const hooks = createHooks(update);
-  update(hooks);
+  const renderableVDOM = rootRender(element, vdom);
+  return renderableVDOM;
 };
 
 export const { __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED } = React;
