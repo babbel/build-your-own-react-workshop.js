@@ -9,13 +9,11 @@ import {
   createRenderableVDOMElement,
   createPrimitiveVDOMElement,
 } from './vdom-helpers';
-import { createHooks, useEffect, useState } from './hooks';
-export { useEffect, useState };
+import { createHooks, useState } from './hooks';
+export { useState };
 import { getRenderableVDOMDiff } from './diff';
 
 // export const useState = (initialState) => [typeof initialState === 'function' ? initialState() : initialState, () => {}];
-// DON'T FORGET
-// Once you have useEffect available globally, you can remove this line
 export const useEffect = () => {};
 
 // should appear in chapter-2/step-1
@@ -161,12 +159,6 @@ export const startRenderSubscription = (element, updateCallback) => {
     previous: {},
     current: {},
   };
-  // DON'T FORGET
-  // You will need to find the right place to call afterUpdate
-  let afterUpdate;
-  const registerOnUpdatedCallback = callback => {
-    afterUpdate = callback;
-  };
   const update = hooks => {
     const renderableVDOM = rootRender(element, hooks, vdom);
     // diff should appear in chapter-3/step-2
@@ -175,11 +167,9 @@ export const startRenderSubscription = (element, updateCallback) => {
     vdom.previous = vdom.current;
     vdom.current = [];
 
-    // diff should appear in chapter-4/step-1
     updateCallback(renderableVDOM, diff);
   };
-  const hooks = createHooks(update, registerOnUpdatedCallback);
-  // const hooks = createHooks(update);
+  const hooks = createHooks(update);
   update(hooks);
 };
 

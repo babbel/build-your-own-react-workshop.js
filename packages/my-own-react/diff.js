@@ -13,7 +13,6 @@ export const propsDiffType = {
   removed: 'removed',
 };
 
-// Should appear in chapter-4/step-1
 export const diffApplicationOrder = [
   diffType.nodeRemoved,
   diffType.nodeAdded,

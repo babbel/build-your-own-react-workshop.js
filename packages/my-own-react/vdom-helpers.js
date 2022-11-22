@@ -52,7 +52,6 @@ export const vdomPointerKeyToVDOMPointerArray = pointerAsString => {
   return pointerAsString.split(',').map(s => parseInt(s));
 };
 
-// should appear in chapter-4/step-1
 export const findRenderableByVDOMPointer = (renderableVDOM, domPointer) => {
   if (!renderableVDOM) {
     return;
@@ -70,35 +69,4 @@ export const findRenderableByVDOMPointer = (renderableVDOM, domPointer) => {
         : findRenderableByVDOMPointer(child, domPointer),
     null,
   );
-};
-
-// should appear in chapter-4/step-1
-export const isChildVDOMPointer = (childVDOMPointer, parentVDOMPointer) => {
-  // everything is a child of the root level pointer []
-  if (parentVDOMPointer.length === 0) {
-    return true;
-  }
-  // to find out if a specific pointer is a child of another pointer, we can
-  // verify whether it contains numbers within the parent pointer
-  return new RegExp(`^${parentVDOMPointer},(\\d+,?)+`).test(childVDOMPointer);
-};
-
-// should appear in chapter-4/step-1
-export const findRootVDOMPointers = pointers => {
-  if (pointers.length === 0) {
-    return pointers;
-  }
-  let rootPointers = [pointers[0]];
-  for (const pointer of pointers.slice(1)) {
-    const rootPointersOfCurrent = rootPointers.filter(rootPointer =>
-      isChildVDOMPointer(pointer, rootPointer),
-    );
-    if (rootPointersOfCurrent.length === 0) {
-      const newRootPointers = rootPointers.filter(
-        rootPointer => !isChildVDOMPointer(rootPointer, pointer),
-      );
-      rootPointers = [...newRootPointers, pointer];
-    }
-  }
-  return rootPointers;
 };
