@@ -20,3 +20,14 @@
 .content {
   padding: 32px;
 }
+
+.even-section {
+  margin: 0 auto;
+  margin-bottom: 30px;
+  max-width: 800px;
+  padding: 10px;
+  border-radius: 24px;
+  background-color: #ff790f;
+  color: white;
+  font-weight: bold;
+}
