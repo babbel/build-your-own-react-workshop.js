@@ -14,7 +14,9 @@ export { useEffect, useState };
 import { getRenderableVDOMDiff } from './diff';
 
 // export const useState = (initialState) => [typeof initialState === 'function' ? initialState() : initialState, () => {}];
-// export const useEffect = () => {};
+// DON'T FORGET
+// Once you have useEffect available globally, you can remove this line
+export const useEffect = () => {};
 
 // should appear in chapter-2/step-1
 /*
@@ -159,9 +161,9 @@ export const startRenderSubscription = (element, updateCallback) => {
     previous: {},
     current: {},
   };
-  // Should appear in chapter-4/step-2
+  // DON'T FORGET
+  // You will need to find the right place to call afterUpdate
   let afterUpdate;
-  // Should appear in chapter-4/step-2
   const registerOnUpdatedCallback = callback => {
     afterUpdate = callback;
   };
@@ -175,10 +177,7 @@ export const startRenderSubscription = (element, updateCallback) => {
 
     // diff should appear in chapter-4/step-1
     updateCallback(renderableVDOM, diff);
-    // Should appear in chapter-4/step-2
-    afterUpdate();
   };
-  // Should appear in chapter-4/step-2
   const hooks = createHooks(update, registerOnUpdatedCallback);
   // const hooks = createHooks(update);
   update(hooks);
