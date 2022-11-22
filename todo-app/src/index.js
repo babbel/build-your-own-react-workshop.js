@@ -16,12 +16,8 @@ root.render(
 */
 
 const root = DOMHandlers.createRoot(document.getElementById('root'));
-root.render(<div className="test" id="test" aria-hidden></div>);
-
-/*
-  const root = DOMHandlers.createRoot(document.getElementById('root'));
 root.render(<div></div>);
-*/
+
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))
