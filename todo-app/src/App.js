@@ -4,48 +4,22 @@ import AddItem from './components/AddItem';
 import ToDos from './components/ToDos';
 import './App.css';
 
-const possibleTitles = [
-  "Your ToDo's",
-  "Super ToDo's",
-  'To do - ba di ba di ba doo',
-];
 
-function StaticStateComponent({ text }) {
-  const [state] = useState(text);
-
-  return <div>{state}</div>;
+function SectionComponent({ children }) {
+  return <section className="even-section">{children}</section>;
 }
 
-function StaticStateComponent2({ text }) {
-  const [state] = useState(text);
-
-  return <span>{state}</span>;
-}
-
-function Counter() {
-  const [count, setCount] = useState(0);
-
-  return (
-    <div>
-      <span>The count is {count}</span>
-      <button onClick={() => setCount(countState => countState + 1)}>+</button>
-    </div>
-  );
-}
-
-function ComponentWithEffect({ titleIndex }) {
+function ComponentWithEffect({ numberOfTodos }) {
   useEffect(() => {
-    console.log('I update when titleIndex is changed');
-    console.log('Closed around titleIndex', titleIndex);
-    return () => console.log('titleIndex effect clean up');
-  }, [titleIndex]);
-  return titleIndex;
+    console.log('I update when the number of Todos changes');
+    console.log('The current number of todos is', numberOfTodos);
+    return () => console.log('Number of todos effect clean up');
+  }, [numberOfTodos]);
+  return false;
 }
 
 function App() {
   const [items, setItems] = useLocalStorage('todoItems', []);
-  const [titleIndex, setTitleIndex] = useState(0);
-  const [titles, setTitles] = useState(possibleTitles);
 
   const deleteItem = item => {
     setItems(existingItems =>
@@ -66,36 +40,18 @@ function App() {
           target="_blank"
           rel="noopener noreferrer"
         >
-          {possibleTitles[titleIndex]}
+          Your ToDo's
         </a>
       </header>
       <div className="content">
-        <div>{titles.map(title => title)}</div>
-        <button onClick={() => setTitles([...possibleTitles])}>
-          Update Titles
-        </button>
-        {titleIndex % 2 === 0 && (
-          <StaticStateComponent text="StaticStateComponent" />
-        )}
-        <StaticStateComponent text="StaticStateComponent2" />
-        {titleIndex % 3 === 0 ? (
-          <StaticStateComponent text="StaticStateComponent" />
-        ) : (
-          <StaticStateComponent text="StaticStateComponent2" />
-        )}
-        {titleIndex % 3 !== 0 && <Counter />}
-        {titleIndex % 3 !== 0 && (
-          <ComponentWithEffect titleIndex={titleIndex} />
-        )}
-        <button
-          onClick={() =>
-            setTitleIndex(current => (current + 1) % possibleTitles.length)
-          }
-        >
-          Next title
-        </button>
+        <ComponentWithEffect numberOfTodos={items.length} />
         <AddItem onAddItem={addItem} />
         <ToDos items={items} deleteItem={deleteItem} />
+        {items.length % 2 === 0 && (
+          <SectionComponent>
+            You have an even number of TODOs, me likey!
+          </SectionComponent>
+        )}
       </div>
     </div>
   );
