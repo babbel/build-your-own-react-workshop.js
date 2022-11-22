@@ -29,59 +29,74 @@ Duration of workshop: 3 hours
 
 Each step of this workshop is represented by a git branch, which contains the relevant code and prompts for that step. Make sure to checkout the relevant branch whenever you move onto the next step.
 
-`main` branch = starting point => TODO app connected to the real React
+`main` branch = the beginning of the journey => TODO app connected to the real React
+
+Each branch contains comments to help you along the way. Search for the following in the code for a hint:
+`START HERE` => Starting point for the branch (step).
+`DON'T FORGET` => Hint that some code needs to be added or edited for the step to be completed.
 
 #### Chapter 1
 
 *Rendering JSX*
 By the end of this chapter your version of React: will have DOMHandlers that are able to render static JSX.
 
-Chapter 1 Step 1 => DOMHandlers can render an empty div
+*Chapter 1 Step 1* => DOMHandlers can render an empty div
 `git checkout chapter-1/step-1`
 
-Chapter 1 Step 2 => DOMHandlers can handle simple attributes
+*Chapter 1 Step 2* => DOMHandlers can handle simple attributes
 e.g. `id="step2`
 `git checkout chapter-1/step-2`
 
-Chapter 1 Step 3 => DOMHandlers can handle the `className` attribute
+*Chapter 1 Step 3* => DOMHandlers can handle HTML tag children
 `git checkout chapter-1/step-3`
 
-Chapter 1 Step 4 => DOMHandlers can handle HTML tag children
+*Chapter 1 Step 4* => DOMHandlers can handle components
 `git checkout chapter-1/step-4`
-
-Chapter 1 Step 5 => DOMHandlers can handle components
-`git checkout chapter-1/step-5`
 
 
 #### Chapter 2
 By the end of this chapter your version of React: will have a working `useState` and repaint the whole page on every update.
 
-Chapter 2 Step 1 => How does state work? We need to subscribe!
+*Chapter 2 Step 1* => How does state work? We need to subscribe!
 `git checkout chapter-2/step-§`
 
-Chapter 2 Step 2 => State on a component basis.
+*Chapter 2 Step 2* => State on a component basis.
 `git checkout chapter-2/step-2`
 
-Chapter 2 Step 3 => How do we allow for multiple states per component?
+*Chapter 2 Step 3* => How do we allow for multiple states per component?
 `git checkout chapter-2/step-3`
 
 #### Chapter 3
 By the end of this chapter your version of React: will have Diffing and targeted DOM updates working correctly.
 
-Chapter 3 Step 1 => How do we only update what's needed from the DOM
+*Chapter 3 Step 1* => Let's handle node added and prop changes
 `git checkout chapter-3/step-1`
 
-Chapter 3 Step 2 => Let's handle node added and prop changes
+*Chapter 3 Step 2* => Let's replace and delete nodes
 `git checkout chapter-3/step-2`
-
-Chapter 3 Step 3 => Let's replace and delete nodes
-`git checkout chapter-3/step-3`
 
 #### Chapter 4
 By the end of this chapter your version of React: will have the `useEffect` hook working correctly.
 
-Chapter 4 Step 1 => Create useEffect without clean-ups
+```
+  useEffect(() => {
+    console.log('I update when titleIndex is changed');
+    console.log('Closed around titleIndex', titleIndex);
+    return () => console.log('titleIndex effect clean up');
+  }, [titleIndex]);
+```
+
+*Chapter 4 Step 1* => Create useEffect without clean-ups
 `git checkout chapter-4/step-1`
 
-Chapter 4 Step 1 => Let's add clean-ups
+In order for the `useEffect` hook to function, we need to create a callback that is a combination of callbacks (all of the app's useEffects). This callback of callbacks then needs to be triggered later in time e.g on re-renders or when the dependencies of the `useEffect` change.
+
+
+*Chapter 4 Step 2* => Let's add clean-ups
 `git checkout chapter-4/step-2`
+
+The useEffect cleanup is a function in the useEffect Hook that allows us to tidy up our code before our component unmounts. On every render the cleanup function  is also triggered if the dependencies.
+
+Therefore in this step, we need to ensure the cleanup function is called when the specific useEffect's dependencies change.
+
+It is important that the clean up is triggered before the next effect is called.
