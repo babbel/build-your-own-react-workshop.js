@@ -15,59 +15,10 @@ root.render(
 );
 */
 
-/*
 const root = DOMHandlers.createRoot(document.getElementById('root'));
-root.render(<App />);
-
-
-const SimpleTest = () => (
-  <div className="test" aria-hidden>
-    <span>Hello World!</span>
-  </div>
-);
-
-const Test = ({ message }) => (
-  <div className="test" aria-hidden>
-    <span>{message}</span>
-  </div>
-);
-
-const MegaTest = () => (
-  <div>
-    <Test message="Hello world!" />
-    <Test message="Super fun!" />
-  </div>
-);
-
-
-const root = DOMHandlers.createRoot(document.getElementById('root'));
-root.render(<App />);
-
-const root = DOMHandlers.createRoot(document.getElementById('root'));
-root.render(<MegaTest />);
-
-const root = DOMHandlers.createRoot(document.getElementById('root'));
-root.render(<Test message="Hello World 2!" />);
-
-const root = DOMHandlers.createRoot(document.getElementById('root'));
-root.render(<SimpleTest />);
-
-*/
-
-const root = DOMHandlers.createRoot(document.getElementById('root'));
-root.render(<div className="test">
-  <span>Hello Test!</span>
-</div>);
-
-/*
-const root = DOMHandlers.createRoot(document.getElementById('root'));
-root.render(<div className="test">
-  Hello Test!
-</div>);
-
-  const root = DOMHandlers.createRoot(document.getElementById('root'));
 root.render(<div className="test" id="test" aria-hidden></div>);
 
+/*
   const root = DOMHandlers.createRoot(document.getElementById('root'));
 root.render(<div></div>);
 */
