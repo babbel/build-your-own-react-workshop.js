@@ -1,9 +1,7 @@
 import { vdomPointerKeyToVDOMPointerArray } from './vdom-helpers';
-// Hooks
-// should appear in chapter-2/step-2
+
 let globalHooksReplacer = {};
 
-// should appear in chapter-2/step-2
 export const useState = (...args) => globalHooksReplacer.useState(...args);
 // DON'T FORGET
 // useEffect will need to be made available globally
@@ -16,17 +14,14 @@ const isStatesDiffer = (prev, next) => {
   return prev !== next;
 };
 
-// should appear in chapter-2/step-2
 const createMakeUseState =
   (onUpdate, hooksMap) => (VDOMPointer, isFirstRender) => {
-    // stateIndexRef should appear in chapter-3/step-1
     let stateIndexRef = { current: 0 };
     let hooksMapPointer = hooksMap[VDOMPointer];
     if (isFirstRender) {
       hooksMapPointer.state = [];
     }
     return initialState => {
-      // stateIndexRef should appear in chapter-3/step-1
       const stateIndex = stateIndexRef.current;
       stateIndexRef.current += 1;
       if (isFirstRender) {
@@ -37,7 +32,7 @@ const createMakeUseState =
             typeof newStateOrCb === 'function'
               ? newStateOrCb
               : () => newStateOrCb;
-          // stateIndex should appear in chapter-3/step-1
+
           const ownState = hooksMapPointer.state[stateIndex];
           const previousState = ownState[0];
           const currentState = newStateFn(previousState);
@@ -48,10 +43,10 @@ const createMakeUseState =
             onUpdate();
           }
         };
-        // stateIndex should appear in chapter-3/step-1
+
         hooksMapPointer.state[stateIndex] = [computedInitialState, setState];
       }
-      // stateIndex should appear in chapter-3/step-1
+
       return hooksMapPointer.state[stateIndex];
     };
   };
@@ -71,7 +66,7 @@ const createMakeUseEffect = (registerOnUpdatedCallback, hooksMap) => {
     combinedCallbackRef.current();
     combinedCallbackRef.current = () => {};
   });
-  // This is a utility function that allows you to set a 
+  // This is a utility function that allows you to set a
   // callback to be ran after the next render
   const registerEffectForNextRender = callback => {
     const { current } = combinedCallbackRef;
@@ -84,7 +79,7 @@ const createMakeUseEffect = (registerOnUpdatedCallback, hooksMap) => {
     };
   };
   return (VDOMPointer, isFirstRender) => {
-    // DON'T FORGET FOR AFTER THE EFFECT RUNNING ON EVERY UPDATE 
+    // DON'T FORGET FOR AFTER THE EFFECT RUNNING ON EVERY UPDATE
     // How similar is useEffect to useState in the way they work?
     const hooksMapPointer = hooksMap[VDOMPointer];
 
@@ -94,7 +89,7 @@ const createMakeUseEffect = (registerOnUpdatedCallback, hooksMap) => {
     // The second argument is the dependencies array which should be used to determine whether the effect
     // should run or not in re-renders.
     return (effectCallback, dependencies) => {
-      // DON'T FORGET FOR AFTER THE EFFECT RUNNING ON EVERY UPDATE 
+      // DON'T FORGET FOR AFTER THE EFFECT RUNNING ON EVERY UPDATE
       // With this code, the effect will be run on every render update
       // how can we make sure it only runs when the dependencies were updated?
       // ps: we created for you a areDependenciesEqual function
@@ -105,7 +100,6 @@ const createMakeUseEffect = (registerOnUpdatedCallback, hooksMap) => {
   };
 };
 
-// interface should appear in chapter-2/step-2
 const makeRegisterHooks =
   (hooksMap, makeUseState) => (VDOMPointer, isFirstRender) => {
     if (isFirstRender) {
@@ -118,18 +112,15 @@ const makeRegisterHooks =
   };
 
 export const createHooks = (onUpdate, registerOnUpdatedCallback) => {
-  // interface should appear in chapter-2/step-1
-  // const createHooks = (onUpdate) => {
-  // structure is given before but implementation should appear in chapter-2/step-2
   const hooksMap = {};
   const hooks = { current: null };
   const boundOnUpdate = () => onUpdate(hooks.current);
   const makeUseState = createMakeUseState(boundOnUpdate, hooksMap);
-  const makeUseEffect = createMakeUseEffect(registerOnUpdatedCallback, hooksMap);
-  const registerHooks = makeRegisterHooks(
+  const makeUseEffect = createMakeUseEffect(
+    registerOnUpdatedCallback,
     hooksMap,
-    makeUseState,
   );
+  const registerHooks = makeRegisterHooks(hooksMap, makeUseState);
   hooks.current = { registerHooks };
   return hooks.current;
 };

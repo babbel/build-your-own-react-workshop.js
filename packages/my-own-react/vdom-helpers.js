@@ -1,9 +1,7 @@
 const PRIMITIVE_TYPE = 'primitive';
 
-// should appear in chapter-2/step-1
 export const isPrimitiveElement = element => element.type === PRIMITIVE_TYPE;
 
-// should appear in chapter-2/step-1
 export const getVDOMElement = (pointer, VDOM) =>
   pointer.reduce(
     (targetElement, currentIndex) =>
@@ -13,7 +11,6 @@ export const getVDOMElement = (pointer, VDOM) =>
     VDOM,
   );
 
-// should appear in chapter-2/step-1
 export const setCurrentVDOMElement = (pointer, element, VDOM) => {
   if (pointer.length === 0) {
     VDOM.current = element;
@@ -24,7 +21,6 @@ export const setCurrentVDOMElement = (pointer, element, VDOM) => {
   pointerToParent.renderedChildren[currentChildIndex] = element;
 };
 
-// should appear in chapter-2/step-1
 export const createVDOMElement = (element, renderedChildren = []) => ({
   element,
   renderedChildren,
@@ -42,7 +38,6 @@ export const createPrimitiveVDOMElement = (value, VDOMPointer) => ({
   VDOMPointer,
 });
 
-// diff should appear in chapter-3/step-2
 export const vdomPointerKeyToVDOMPointerArray = pointerAsString => {
   // The empty array ends up with an empty string, so this needs extra care when transforming
   if (pointerAsString === '') {
@@ -52,7 +47,6 @@ export const vdomPointerKeyToVDOMPointerArray = pointerAsString => {
   return pointerAsString.split(',').map(s => parseInt(s));
 };
 
-// should appear in chapter-4/step-1
 export const findRenderableByVDOMPointer = (renderableVDOM, domPointer) => {
   if (!renderableVDOM) {
     return;
@@ -72,7 +66,6 @@ export const findRenderableByVDOMPointer = (renderableVDOM, domPointer) => {
   );
 };
 
-// should appear in chapter-4/step-1
 export const isChildVDOMPointer = (childVDOMPointer, parentVDOMPointer) => {
   // everything is a child of the root level pointer []
   if (parentVDOMPointer.length === 0) {
@@ -83,7 +76,6 @@ export const isChildVDOMPointer = (childVDOMPointer, parentVDOMPointer) => {
   return new RegExp(`^${parentVDOMPointer},(\\d+,?)+`).test(childVDOMPointer);
 };
 
-// should appear in chapter-4/step-1
 export const findRootVDOMPointers = pointers => {
   if (pointers.length === 0) {
     return pointers;

@@ -7,7 +7,6 @@ import {
 } from './vdom-helpers';
 import { diffType, propsDiffType, diffApplicationOrder } from './diff';
 
-// should appear in chapter-1/step-3
 const eventHandlersMap = {
   onClick: 'click',
   // for the `change` event to trigger, the user is required to leave the field and come back
@@ -16,17 +15,15 @@ const eventHandlersMap = {
   onSubmit: 'submit',
 };
 const isEventHandlerProp = key => Object.keys(eventHandlersMap).includes(key);
-// should appear in chapter-1/step-3
+
 const addEventHandler = (domElement, { key, value }) => {
   domElement.addEventListener(eventHandlersMap[key], value);
 };
 
-// should appear in chapter-4/step-1
 const removeEventHandler = (domElement, { key, value }) => {
   domElement.removeEventListener(eventHandlersMap[key], value);
 };
 
-// should appear in chapter-1/step-3
 const applyPropToHTMLElement = ({ key, value }, element) => {
   if (isEventHandlerProp(key)) {
     addEventHandler(element, { key, value });
@@ -35,7 +32,6 @@ const applyPropToHTMLElement = ({ key, value }, element) => {
   element[key] = value;
 };
 
-// should appear in chapter-4/step-1
 const removePropFromHTMLElement = ({ key, oldValue }, element) => {
   if (isEventHandlerProp(key)) {
     removeEventHandler(renderedElementsMap[VDOMPointer], { key, oldValue });
@@ -44,18 +40,16 @@ const removePropFromHTMLElement = ({ key, oldValue }, element) => {
   element.removeAttribute(key);
 };
 
-// renderedElementsMap should appear in chapter-4/step-1
 const renderComponentElementToHtml = (
   { props: { children, ...props }, type },
   renderedElementsMap,
 ) => {
-  // should appear in chapter-1/step-2
   const domElement = document.createElement(type);
-  // should appear in chapter-1/step-3
+
   Object.entries(props).forEach(([key, value]) => {
     applyPropToHTMLElement({ key, value }, domElement);
   });
-  // should appear in chapter-1/step-6
+
   if (children) {
     const childrenAsDomElement = children.map(child =>
       renderElementToHtml(child, renderedElementsMap),
@@ -66,11 +60,10 @@ const renderComponentElementToHtml = (
       }
     });
   }
-  // should appear in chapter-1/step-2
+
   return domElement;
 };
 
-// should appear in chapter-1/step-6
 const renderPrimitiveToHtml = ({ value }) => {
   switch (typeof value) {
     case 'string':
@@ -85,7 +78,6 @@ const renderPrimitiveToHtml = ({ value }) => {
   }
 };
 
-// renderedElementsMap should appear in chapter-4/step-1
 const renderElementToHtml = (element, renderedElementsMap) => {
   const renderedElement = isPrimitiveElement(element)
     ? renderPrimitiveToHtml(element)
@@ -94,7 +86,6 @@ const renderElementToHtml = (element, renderedElementsMap) => {
   return renderedElement;
 };
 
-// should appear in chapter-4/step-1
 const findRenderedChildrenByVDOMPointer = (
   renderedElementsMap,
   VDOMPointer,
@@ -104,7 +95,6 @@ const findRenderedChildrenByVDOMPointer = (
   );
 };
 
-// should appear in chapter-4/step-1
 const findNextSiblingOfVDOMPointer = (
   { renderedElementsMap, renderableVDOM },
   VDOMPointer,
@@ -137,7 +127,6 @@ const findNextSiblingOfVDOMPointer = (
   return nextSibling;
 };
 
-// should appear in chapter-4/step-1
 const applyNodeRemoved = ({ renderedElementsMap }, { VDOMPointer }) => {
   const elementToRemove = renderedElementsMap[VDOMPointer];
   if (elementToRemove) {
@@ -165,7 +154,6 @@ const applyNodeRemoved = ({ renderedElementsMap }, { VDOMPointer }) => {
   delete renderedElementsMap[VDOMPointer];
 };
 
-// should appear in chapter-4/step-1
 const applyNodeAdded = (
   { renderedElementsMap, renderableVDOM },
   { VDOMPointer, payload: { node, parentPointer } },
@@ -216,7 +204,6 @@ const applyNodeAdded = (
   renderedElementsMap[VDOMPointer] = addedElement;
 };
 
-// should appear in chapter-4/step-1
 const applyNodeReplaced = (
   { renderedElementsMap, renderableVDOM },
   { VDOMPointer, payload: { newNode, oldNode, parentPointer } },
@@ -231,7 +218,6 @@ const applyNodeReplaced = (
   );
 };
 
-// should appear in chapter-4/step-1
 const applyPrimitiveNodeUpdate = (
   { renderedElementsMap },
   { VDOMPointer, payload: { newElement } },
@@ -239,7 +225,6 @@ const applyPrimitiveNodeUpdate = (
   renderedElementsMap[VDOMPointer].nodeValue = newElement.value;
 };
 
-// should appear in chapter-4/step-1
 const applyProps = (
   { renderedElementsMap },
   { VDOMPointer, payload: propsChanged },
@@ -267,7 +252,6 @@ const applyProps = (
   );
 };
 
-// should appear in chapter-4/step-1
 const diffApplicators = {
   [diffType.nodeRemoved]: applyNodeRemoved,
   [diffType.nodeAdded]: applyNodeAdded,
@@ -276,7 +260,6 @@ const diffApplicators = {
   [diffType.props]: applyProps,
 };
 
-// Should appear in chapter-4/step-1
 const applyDiff = (diff, renderedElementsMap, renderableVDOM) => {
   const sortedDiffs = diff.sort(
     (a, b) =>
@@ -294,14 +277,9 @@ const applyDiff = (diff, renderedElementsMap, renderableVDOM) => {
 const createRoot = rootElement => ({
   rootElement,
   render: rootChild => {
-    // should appear in chapter-2/step-1
-    // let lastChild;
-    // Should appear in chapter-4/step-1
     let renderedElementsMap = {};
-    // Should appear in chapter-4/step-1
+
     startRenderSubscription(rootChild, (renderableVDOM, diff) => {
-      // startRenderSubscription(rootChild, (renderableVDOM) => {
-      // Should appear in chapter-4/step-1
       if (Object.keys(renderedElementsMap).length === 0) {
         const rootChildAsHTML = renderElementToHtml(
           renderableVDOM,
@@ -311,22 +289,6 @@ const createRoot = rootElement => ({
       } else {
         applyDiff(diff, renderedElementsMap, renderableVDOM);
       }
-      /* version before chapter-4/step-1
-      // update should appear in chapter-2/step-1
-        if (!lastChild) {
-          const rootChildAsHTML = renderElementToHtml(renderableVDOM);
-          rootElement.appendChild(rootChildAsHTML);
-        } else {
-          const rootChildAsHTML = renderElementToHtml(renderableVDOM, renderedElementsMap);
-          rootElement.replaceChild(rootChildAsHTML, lastChild);
-        }
-        lastChild = rootChildAsHTML;
-      */
-      /* version before chapter-2/step-1
-     // should appear in chapter-1/step-2
-      const rootChildAsHTML = renderElementToHtml(renderableVDOM);
-      rootElement.appendChild(rootChildAsHTML);
-     */
     });
   },
 });

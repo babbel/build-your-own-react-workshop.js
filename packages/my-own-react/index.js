@@ -18,7 +18,6 @@ import { getRenderableVDOMDiff } from './diff';
 // Once you have useEffect available globally, you can remove this line
 export const useEffect = () => {};
 
-// should appear in chapter-2/step-1
 /*
 
 VDOM with pointer idea
@@ -58,7 +57,7 @@ const VDOM = {
 }
 
 We can then create "pointer"s to access specific children based on their location in the tree, for example to access "Hello world!",
-we need to dig into the first element's children picking the first child "span", then pick the second child from that element which is "Hello world!". 
+we need to dig into the first element's children picking the first child "span", then pick the second child from that element which is "Hello world!".
 // So a pointer to it can look like:
 const pointerToHelloWorld = [0, 1];
 const element = getVDOMElement(pointerToHelloWorld, VDOM); // [`Hello world!`]
@@ -66,10 +65,8 @@ And you access the element itself by extracting taking the element from it, e.g.
 const { element: button } = getVDOMElement([1]], VDOM); // button
 */
 
-// should appear in chapter-2/step-1
 export const isPrimitiveElementFromJSX = element => typeof element !== 'object';
 
-// should appear in chapter-2/step-1
 const renderComponentElement = (element, VDOM, VDOMPointer, hooks) => {
   const {
     props: { children, ...props },
@@ -87,7 +84,7 @@ const renderComponentElement = (element, VDOM, VDOMPointer, hooks) => {
   );
   if (typeof type === 'function') {
     const FunctionalComponent = type;
-    // should appear in chapter-2/step-2
+
     hooks.registerHooks(VDOMPointer, isFirstRender);
     const renderedElement = FunctionalComponent({ children, ...props });
     setCurrentVDOMElement(
@@ -129,7 +126,6 @@ const renderComponentElement = (element, VDOM, VDOMPointer, hooks) => {
   return elementAsRenderableVDOMElement;
 };
 
-// should appear in chapter-2/step-1
 const renderPrimitive = (value, VDOM, VDOMPointer) => {
   const elementAsRenderableVDOMElement = createPrimitiveVDOMElement(
     value,
@@ -143,19 +139,16 @@ const renderPrimitive = (value, VDOM, VDOMPointer) => {
   return elementAsRenderableVDOMElement;
 };
 
-// should appear in chapter-2/step-1
 const render = (element, VDOM, VDOMPointer, hooks) =>
   isPrimitiveElementFromJSX(element)
     ? renderPrimitive(element, VDOM, VDOMPointer)
     : renderComponentElement(element, VDOM, VDOMPointer, hooks);
 
-// should appear in chapter-2/step-1
 const rootRender = (element, hooks, vdom) => {
   let renderableVDOM = render(element, vdom, [], hooks);
   return renderableVDOM;
 };
 
-// interface should appear in chapter-2/step-1
 export const startRenderSubscription = (element, updateCallback) => {
   let vdom = {
     previous: {},
@@ -169,17 +162,16 @@ export const startRenderSubscription = (element, updateCallback) => {
   };
   const update = hooks => {
     const renderableVDOM = rootRender(element, hooks, vdom);
-    // diff should appear in chapter-3/step-2
+
     const diff = getRenderableVDOMDiff(renderableVDOM, vdom);
 
     vdom.previous = vdom.current;
     vdom.current = [];
 
-    // diff should appear in chapter-4/step-1
     updateCallback(renderableVDOM, diff);
   };
+
   const hooks = createHooks(update, registerOnUpdatedCallback);
-  // const hooks = createHooks(update);
   update(hooks);
 };
 
