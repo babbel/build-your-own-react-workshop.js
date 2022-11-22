@@ -1,9 +1,7 @@
 import { vdomPointerKeyToVDOMPointerArray } from './vdom-helpers';
-// Hooks
-// should appear in chapter-2/step-2
+
 let globalHooksReplacer = {};
 
-// should appear in chapter-2/step-2
 export const useState = (...args) => globalHooksReplacer.useState(...args);
 
 const isStatesDiffer = (prev, next) => {
@@ -14,7 +12,6 @@ const isStatesDiffer = (prev, next) => {
   return prev !== next;
 };
 
-// should appear in chapter-2/step-2
 const createMakeUseState =
   (onUpdate, hooksMap) => (VDOMPointer, isFirstRender) => {
     let hooksMapPointer = hooksMap[VDOMPointer];
@@ -33,7 +30,7 @@ const createMakeUseState =
       we would want to keep two states, at the first index the counter state
       at the second index, the userHasClicked.
       NB: their identification within this function is purely based on their index
-      */ 
+      */
       if (isFirstRender) {
         const computedInitialState =
           typeof initialState === 'function' ? initialState() : initialState;
@@ -58,7 +55,6 @@ const createMakeUseState =
     };
   };
 
-// interface should appear in chapter-2/step-2
 const makeRegisterHooks =
   (hooksMap, makeUseState) => (VDOMPointer, isFirstRender) => {
     if (isFirstRender) {
@@ -68,18 +64,12 @@ const makeRegisterHooks =
     globalHooksReplacer.useState = useState;
   };
 
-export const createHooks = (onUpdate) => {
-  // interface should appear in chapter-2/step-1
-  // const createHooks = (onUpdate) => {
-  // structure is given before but implementation should appear in chapter-2/step-2
+export const createHooks = onUpdate => {
   const hooksMap = {};
   const hooks = { current: null };
   const boundOnUpdate = () => onUpdate(hooks.current);
   const makeUseState = createMakeUseState(boundOnUpdate, hooksMap);
-  const registerHooks = makeRegisterHooks(
-    hooksMap,
-    makeUseState,
-  );
+  const registerHooks = makeRegisterHooks(hooksMap, makeUseState);
   hooks.current = { registerHooks };
   return hooks.current;
 };
