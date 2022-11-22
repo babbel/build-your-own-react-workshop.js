@@ -1,9 +1,7 @@
 const PRIMITIVE_TYPE = 'primitive';
 
-// should appear in chapter-2/step-1
 export const isPrimitiveElement = element => element.type === PRIMITIVE_TYPE;
 
-// should appear in chapter-2/step-1
 export const getVDOMElement = (pointer, VDOM) =>
   pointer.reduce(
     (targetElement, currentIndex) =>
@@ -13,7 +11,6 @@ export const getVDOMElement = (pointer, VDOM) =>
     VDOM,
   );
 
-// should appear in chapter-2/step-1
 export const setCurrentVDOMElement = (pointer, element, VDOM) => {
   if (pointer.length === 0) {
     VDOM.current = element;
@@ -24,7 +21,6 @@ export const setCurrentVDOMElement = (pointer, element, VDOM) => {
   pointerToParent.renderedChildren[currentChildIndex] = element;
 };
 
-// should appear in chapter-2/step-1
 export const createVDOMElement = (element, renderedChildren = []) => ({
   element,
   renderedChildren,
