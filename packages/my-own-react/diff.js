@@ -21,7 +21,6 @@ export const diffApplicationOrder = [
   diffType.props,
 ];
 
-// Should appear in chapter-3/step-2
 export const getRenderableVDOMDiff = (
   currentRenderableVDOMElement,
   vdom,
