@@ -49,15 +49,14 @@ const makeRegisterHooks =
     globalHooksReplacer.useState = useState;
   };
 
-export const createHooks = (onUpdate) => {
+export const createHooks = onUpdate => {
+  // hooksMap[[0,0,0]] is the hooks for the component with VDOMPointer [0, 0, 0]
   const hooksMap = {};
+  // individual hooks have the following structure { state: [], effects: []}
   const hooks = { current: null };
   const boundOnUpdate = () => onUpdate(hooks.current);
   const makeUseState = createMakeUseState(boundOnUpdate, hooksMap);
-  const registerHooks = makeRegisterHooks(
-    hooksMap,
-    makeUseState,
-  );
+  const registerHooks = makeRegisterHooks(hooksMap, makeUseState);
   hooks.current = { registerHooks };
   return hooks.current;
 };
