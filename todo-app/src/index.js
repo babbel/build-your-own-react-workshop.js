@@ -1,23 +1,73 @@
 import React from 'react';
-// import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 
 import { DOMHandlers } from 'my-own-react';
 
-/*
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
+const rootElement = document.getElementById('root');
+
+let fallbackEl = document.createElement('article');
+fallbackEl.append(
+  'Your render function is not returning anything yet. Check out my-own-react/dom-handlers.js to get started!',
 );
-*/
+fallbackEl.setAttribute('classname', 'fallback');
+
+const root = DOMHandlers.createRoot(rootElement);
+root.render(<App />) || rootElement.append(fallbackEl);
+
+/*
+const SimpleTest = () => (
+  <div className="test" aria-hidden>
+    <span>Hello World!</span>
+  </div>
+);
+
+const Test = ({ message }) => (
+  <div className="test" aria-hidden>
+    <span>{message}</span>
+  </div>
+);
+
+const MegaTest = () => (
+  <div>
+    <Test message="Hello world!" />
+    <Test message="Super fun!" />
+  </div>
+);
+
 
 const root = DOMHandlers.createRoot(document.getElementById('root'));
-root.render(<div></div>);
+root.render(<App />);
 
+const root = DOMHandlers.createRoot(document.getElementById('root'));
+root.render(<MegaTest />);
+
+const root = DOMHandlers.createRoot(document.getElementById('root'));
+root.render(<Test message="Hello World 2!" />);
+
+const root = DOMHandlers.createRoot(document.getElementById('root'));
+root.render(<SimpleTest />);
+
+const root = DOMHandlers.createRoot(document.getElementById('root'));
+root.render(<div className="test">
+  <span>Hello Test!</span>
+</div>);
+
+const root = DOMHandlers.createRoot(document.getElementById('root'));
+root.render(<div className="test">
+  Hello Test!
+</div>);
+
+  const root = DOMHandlers.createRoot(document.getElementById('root'));
+root.render(<div className="test" id="test" aria-hidden></div>);
+
+  const root = DOMHandlers.createRoot(document.getElementById('root'));
+root.render(<div></div>);
+*/
+
+// const root = DOMHandlers.createRoot(document.getElementById('root'));
+// root.render(<div></div>);
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))
