@@ -26,7 +26,7 @@ Duration of workshop: 3 hours
 #### Introduction
 
 1. Clone the repo `gh repo clone babbel/build-your-own-react-workshop.js`
-2. `cd ./todo-app && npm install`
+2. Install the dependencies `npm ci`
 3. Check out the working app using the real boring React `npm run start`
 
 Each step of this workshop is represented by a git branch, which contains the relevant code and prompts for that step. Make sure to checkout the relevant branch whenever you move onto the next step.
