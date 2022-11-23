@@ -110,8 +110,9 @@ const makeRegisterHooks =
   };
 
 export const createHooks = (onUpdate, registerOnUpdatedCallback) => {
+  // hooksMap[[0,0,0]] is the hooks for the component with VDOMPointer [0, 0, 0]
   const hooksMap = {};
-  const hooks = { current: null };
+  // individual hooks have the following structure { state: [], effects: []}
   const boundOnUpdate = () => onUpdate(hooks.current);
   const makeUseState = makeMakeUseState(boundOnUpdate, hooksMap);
 
