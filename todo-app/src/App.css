@@ -21,6 +21,14 @@
   padding: 32px;
 }
 
+.counter {
+  margin-bottom: 32px;
+}
+.counterBtn {
+  margin-left: 8px;
+  width: 24px;
+}
+
 .even-section {
   margin: 0 auto;
   margin-bottom: 30px;
