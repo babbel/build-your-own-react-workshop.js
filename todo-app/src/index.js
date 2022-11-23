@@ -14,7 +14,10 @@ fallbackEl.append(
 fallbackEl.setAttribute('classname', 'fallback');
 
 const root = DOMHandlers.createRoot(rootElement);
-root.render(<App />) || rootElement.append(fallbackEl);
+root.render(<App />);
+
+// render fallback
+if (!rootElement.hasChildNodes()) rootElement.append(fallbackEl);
 
 /*
 const SimpleTest = () => (
