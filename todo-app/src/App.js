@@ -4,7 +4,6 @@ import AddItem from './components/AddItem';
 import ToDos from './components/ToDos';
 import './App.css';
 
-
 function SectionComponent({ children }) {
   return <section className="even-section">{children}</section>;
 }
@@ -19,6 +18,7 @@ function ComponentWithEffect({ numberOfTodos }) {
 }
 
 function App() {
+  const [counter, setCounter] = useState(0);
   const [items, setItems] = useLocalStorage('todoItems', []);
 
   const deleteItem = item => {
@@ -44,10 +44,26 @@ function App() {
         </a>
       </header>
       <div className="content">
+        <div className="counter">
+          Tasks completed today: {`${counter}`}
+          <button
+            className="counterBtn"
+            onClick={() => setCounter(count => count + 1)}
+          >
+            +
+          </button>
+          <button
+            className="counterBtn"
+            onClick={() => setCounter(count => count - 1)}
+            disabled={!counter}
+          >
+            -
+          </button>
+        </div>
         <ComponentWithEffect numberOfTodos={items.length} />
         <AddItem onAddItem={addItem} />
         <ToDos items={items} deleteItem={deleteItem} />
-        {items.length % 2 === 0 && (
+        {Boolean(items.length && items.length % 2 === 0) && (
           <SectionComponent>
             You have an even number of TODOs, me likey!
           </SectionComponent>
