@@ -12,6 +12,20 @@ code {
     monospace;
 }
 
+article {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ff790f;
+  font-size: 24px;
+  color: white;
+  width: 500px;
+  padding: 32px;
+  margin: 124px auto;
+  line-height: 1.5;
+  text-align: center;
+}
+
 ul {
   display: block;
   margin-block-start: 0;
