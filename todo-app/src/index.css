@@ -43,21 +43,28 @@ ul {
   background-color: #efefef;
   border: 1px solid #ff790f;
   color: black;
-  border-radius: 2px;
+  border-radius: 5px;
   padding: 16px;
   position: fixed;
   z-index: 1;
   left: 32px;
   bottom: 32px;
   min-height: 101px;
+  display: flex;
+  white-space: pre-wrap;
+}
+
+#snackbarText {
+  margin: 0;
 }
 
 #closeBtn {
   position: absolute;
-  top: 2px;
+  top: 5px;
   right: 2px;
   border: none;
   cursor: pointer;
+  font-size: 14px;
 }
 
 #snackbarBtn {
