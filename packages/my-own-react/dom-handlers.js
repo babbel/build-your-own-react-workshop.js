@@ -1,5 +1,6 @@
 const isPrimitiveElement = element => typeof element !== 'object';
 
+// map of eventHandlers that the ToDo app requires
 const eventHandlersMap = {
   onClick: 'click',
   // for the `change` event to trigger, the user is required to leave the field and come back
@@ -21,10 +22,8 @@ const applyPropToHTMLElement = ({ key, value }, element) => {
   element[key] = value;
 };
 
-const renderComponentElementToHtml = ({
-  props: { children, ...props },
-  type,
-}) => {
+// expects a JSX element and returns an HTML element
+const renderTagElementToHtml = ({ props: { children, ...props }, type }) => {
   const domElement = document.createElement(type);
 
   Object.entries(props).forEach(([key, value]) => {
@@ -55,7 +54,7 @@ const renderPrimitiveToHtml = value => {
 const renderElementToHtml = element => {
   const renderedElement = isPrimitiveElement(element)
     ? renderPrimitiveToHtml(element)
-    : renderComponentElementToHtml(element);
+    : renderTagElementToHtml(element);
   return renderedElement;
 };
 
