@@ -200,11 +200,9 @@ const applyDiff = (diff, renderedElementsMap, renderableVDOM) => {
 const createRoot = rootElement => ({
   rootElement,
   render: rootChild => {
-    // should appear in chapter-2/step-1
-    // let lastChild;
     let renderedElementsMap = {};
+    // subscribes to DOM changes which are driven by state changes
     startRenderSubscription(rootChild, (renderableVDOM, diff) => {
-      // startRenderSubscription(rootChild, (renderableVDOM) => {
       if (Object.keys(renderedElementsMap).length === 0) {
         const rootChildAsHTML = renderElementToHtml(
           renderableVDOM,
