@@ -7,6 +7,7 @@ import {
 } from './vdom-helpers';
 import { diffType, propsDiffType, diffApplicationOrder } from './diff';
 
+// map of eventHandlers that the ToDo app requires
 const eventHandlersMap = {
   onClick: 'click',
   // for the `change` event to trigger, the user is required to leave the field and come back
@@ -40,7 +41,8 @@ const removePropFromHTMLElement = ({ key, oldValue }, element) => {
   element.removeAttribute(key);
 };
 
-const renderComponentElementToHtml = (
+// expects a JSX element and returns an HTML element
+const renderTagElementToHtml = (
   { props: { children, ...props }, type },
   renderedElementsMap,
 ) => {
@@ -81,7 +83,7 @@ const renderPrimitiveToHtml = ({ value }) => {
 const renderElementToHtml = (element, renderedElementsMap) => {
   const renderedElement = isPrimitiveElement(element)
     ? renderPrimitiveToHtml(element)
-    : renderComponentElementToHtml(element, renderedElementsMap);
+    : renderTagElementToHtml(element, renderedElementsMap);
   renderedElementsMap[element.VDOMPointer] = renderedElement;
   return renderedElement;
 };
@@ -100,6 +102,34 @@ const findNextSiblingOfVDOMPointer = (
   VDOMPointer,
   parentPointer,
 ) => {
+  /*
+        Given the following VDOM
+        <App>
+          <div>
+            <Component>
+              <div>
+                <Component>
+                  <span>First child</span>
+                  <span>Second child</span>
+                </Component>
+                <span>Hello world!</span>
+              </div>
+            </Component>
+          </div>
+        </App>
+
+        we get the following renderableVDOM (with VDOMPointer)
+        <div> [0]
+          <div> [0, 0, 0]
+            <span>First child</span> [0, 0, 0, 0, 0]
+            <span>Second child</span> [0, 0, 0, 0, 1]
+            <span>Hello world!</span> [0, 0, 0, 1]
+          </div>
+        </div>
+
+        So that the sibling of VDOMPointer [0, 0, 0, 1] in the renderableVDOM
+        is the span Second child with VDOMPointer [0, 0, 0, 0, 1]
+  */
   const parentElementFromRenderableVDOM = findRenderableByVDOMPointer(
     renderableVDOM,
     parentPointer,
@@ -158,36 +188,6 @@ const applyNodeAdded = (
   { renderedElementsMap, renderableVDOM },
   { VDOMPointer, payload: { node, parentPointer } },
 ) => {
-  /*
-        VDOM
-        <App>
-          <div>
-            <Component>
-              <div>
-                <Component>
-                  <span>First child</span>
-                  <span>Second child</span>
-                </Component>
-                <span>Hello world!</span>
-              </div>
-            </Component>
-          </div>
-        </App>
-
-        renderableVDOM (with VDOMPointer)
-        <div> [0]
-          <div> [0, 0, 0]
-            <span>First child</span> [0, 0, 0, 0, 0]
-            <span>Second child</span> [0, 0, 0, 0, 1]
-            <span>Hello world!</span> [0, 0, 0, 1]
-          </div>
-        </div>
-
-        diff [0, 0, 0, 1]: ['node_added', { element: { type: span }, VDOMPointer: [0, 0, 0, 1] }]
-
-        renderableVDOM parent: [0, 0, 0]
-        renderableVDOM next sibling: [0, 0, 0, 0, 1]
-      */
   const parentElement = renderedElementsMap[parentPointer];
   const nextSibling = findNextSiblingOfVDOMPointer(
     { renderedElementsMap, renderableVDOM },
