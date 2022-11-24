@@ -1,10 +1,8 @@
 import { startRenderSubscription } from '.';
-import {
-  isPrimitiveElement,
-} from './vdom-helpers';
+import { isPrimitiveElement } from './vdom-helpers';
 import { diffType, propsDiffType, diffApplicationOrder } from './diff';
 
-// should appear in chapter-1/step-3
+// map of eventHandlers that the ToDo app requires
 const eventHandlersMap = {
   onClick: 'click',
   // for the `change` event to trigger, the user is required to leave the field and come back
@@ -27,10 +25,8 @@ const applyPropToHTMLElement = ({ key, value }, element) => {
   element[key] = value;
 };
 
-const renderComponentElementToHtml = (
-  { props: { children, ...props }, type }
-) => {
-  // should appear in chapter-1/step-2
+// expects a JSX element and returns an HTML element
+const renderTagElementToHtml = ({ props: { children, ...props }, type }) => {
   const domElement = document.createElement(type);
   // should appear in chapter-1/step-3
   Object.entries(props).forEach(([key, value]) => {
@@ -66,10 +62,10 @@ const renderPrimitiveToHtml = ({ value }) => {
   }
 };
 
-const renderElementToHtml = (element) => {
+const renderElementToHtml = element => {
   const renderedElement = isPrimitiveElement(element)
     ? renderPrimitiveToHtml(element)
-    : renderComponentElementToHtml(element);
+    : renderTagElementToHtml(element);
   return renderedElement;
 };
 
@@ -77,7 +73,7 @@ const createRoot = rootElement => ({
   rootElement,
   render: rootChild => {
     let lastChild;
-    startRenderSubscription(rootChild, (renderableVDOM) => {
+    startRenderSubscription(rootChild, renderableVDOM => {
       let rootChildAsHTML;
       // update should appear in chapter-2/step-1
       if (!lastChild) {
