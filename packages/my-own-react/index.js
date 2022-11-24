@@ -146,6 +146,8 @@ const rootRender = (element, hooks, vdom) => {
   return renderableVDOM;
 };
 
+// this function will call the updateCallback on every state change
+// so the DOM is re-rendered
 export const startRenderSubscription = (element, updateCallback) => {
   let vdom = {
     previous: {},
