@@ -34,3 +34,72 @@ ul {
   margin-inline-end: 0px;
   padding-inline-start: 0;
 }
+
+/* The snackbar - position it at the bottom and in the middle of the screen */
+#snackbar {
+  visibility: hidden;
+  min-width: 250px;
+  width: 33%;
+  background-color: #efefef;
+  border: 1px solid #ff790f;
+  color: black;
+  border-radius: 2px;
+  padding: 16px;
+  position: fixed;
+  z-index: 1;
+  left: 32px;
+  bottom: 32px;
+  min-height: 101px;
+}
+
+#closeBtn {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  border: none;
+  cursor: pointer;
+}
+
+#snackbarBtn {
+  position: fixed;
+  bottom: 32px;
+  left: 32px;
+  width: 140px;
+  padding: 8px;
+  border: 1px solid #ff790f;
+  color: black;
+  border-radius: 16px;
+  cursor: pointer;
+}
+
+#snackbarBtn:hover {
+  opacity: 0.8;
+}
+
+#snackbar.show {
+  visibility: visible;
+  -webkit-animation: fadein 0.5s;
+  animation: fadein 0.5s;
+}
+
+@-webkit-keyframes fadein {
+  from {
+    bottom: 0;
+    opacity: 0;
+  }
+  to {
+    bottom: 30px;
+    opacity: 1;
+  }
+}
+
+@keyframes fadein {
+  from {
+    bottom: 0;
+    opacity: 0;
+  }
+  to {
+    bottom: 30px;
+    opacity: 1;
+  }
+}
