@@ -1,6 +1,5 @@
 import React from 'react';
 import './index.css';
-import App from './App';
 import reportWebVitals from './reportWebVitals';
 
 import { DOMHandlers } from 'my-own-react';
@@ -12,12 +11,6 @@ fallbackEl.append(
   'Your render function is not returning anything yet. Check out my-own-react/dom-handlers.js to get started!',
 );
 fallbackEl.setAttribute('classname', 'fallback');
-
-const root = DOMHandlers.createRoot(rootElement);
-root.render(<App />);
-
-// render fallback
-if (!rootElement.hasChildNodes()) rootElement.append(fallbackEl);
 
 /*
 const SimpleTest = () => (
@@ -80,9 +73,11 @@ root.render(<SimpleTest />);
 */
 
 const root = DOMHandlers.createRoot(document.getElementById('root'));
-root.render(<div className="test">
-  <span>Hello Test!</span>
-</div>);
+root.render(
+  <div className="test">
+    <span>Hello Test!</span>
+  </div>,
+);
 
 /*
 const root = DOMHandlers.createRoot(document.getElementById('root'));
@@ -96,6 +91,9 @@ root.render(<div className="test" id="test" aria-hidden></div>);
   const root = DOMHandlers.createRoot(document.getElementById('root'));
 root.render(<div></div>);
 */
+
+// render fallback
+if (!rootElement.hasChildNodes()) rootElement.append(fallbackEl);
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))
