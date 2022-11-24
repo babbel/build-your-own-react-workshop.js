@@ -13,11 +13,8 @@ fallbackEl.append(
 );
 fallbackEl.setAttribute('classname', 'fallback');
 
-const root = DOMHandlers.createRoot(rootElement);
-root.render(<App />);
-
-// render fallback
-if (!rootElement.hasChildNodes()) rootElement.append(fallbackEl);
+// const root = DOMHandlers.createRoot(rootElement);
+// root.render(<App />);
 
 /*
 const SimpleTest = () => (
@@ -39,14 +36,15 @@ const MegaTest = () => (
   </div>
 );
 
-
 const root = DOMHandlers.createRoot(document.getElementById('root'));
 root.render(<div className="test" id="test" aria-hidden></div>);
-
-/*
-  const root = DOMHandlers.createRoot(document.getElementById('root'));
-root.render(<div></div>);
 */
+
+const root = DOMHandlers.createRoot(document.getElementById('root'));
+root.render(<div></div>);
+
+// render fallback
+if (!rootElement.hasChildNodes()) rootElement.append(fallbackEl);
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))
