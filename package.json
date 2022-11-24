@@ -3,9 +3,11 @@
   "version": "1.0.0",
   "description": "The workspace setup for the build your own react workshop!",
   "scripts": {
-    "start": "cd todo-app && npm start",
+    "start": "npm run git-branch && cd todo-app && npm start",
     "postinstall": "cd todo-app && npm ci",
-    "format": "prettier --write \"**/*.+(js|jsx|json|yml|yaml|css|md|vue)\""
+    "format": "prettier --write \"**/*.+(js|jsx|json|yml|yaml|css|md|vue)\"",
+    "git-branch": "node ./gitBranch.js",
+    "prepare": "husky install"
   },
   "repository": {
     "type": "git",
@@ -21,5 +23,8 @@
   ],
   "devDependencies": {
     "prettier": "^2.7.1"
+  },
+  "dependencies": {
+    "husky": "^8.0.2"
   }
 }
