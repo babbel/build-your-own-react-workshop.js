@@ -5,6 +5,7 @@ let globalHooksReplacer = {};
 export const useState = (...args) => globalHooksReplacer.useState(...args);
 export const useEffect = (...args) => globalHooksReplacer.useEffect(...args);
 
+// compares state changes between updates
 const isStatesDiffer = (prev, next) => {
   if (typeof next === 'object') {
     return JSON.stringify(prev) !== JSON.stringify(next);
@@ -13,19 +14,28 @@ const isStatesDiffer = (prev, next) => {
   return prev !== next;
 };
 
-const makeMakeUseState =
+// Creates the unique useState for each component element.
+// onUpdate should be called after state update to re-render the DOM.
+// hooksMap contains each hook in relation to its VDOM pointer.
+// VDOMPointer is specific per component.
+const createMakeUseState =
   (onUpdate, hooksMap) => (VDOMPointer, isFirstRender) => {
     let stateIndexRef = { current: 0 };
     let hooksMapPointer = hooksMap[VDOMPointer];
     if (isFirstRender) {
       hooksMapPointer.state = [];
     }
+
+    // this is what gets called in the React component when you use useState()
     return initialState => {
       const stateIndex = stateIndexRef.current;
       stateIndexRef.current += 1;
       if (isFirstRender) {
+        // In React, initialState can be a function for lazy state initilisation
+        // So to handle that, we should call the initialState if it's a function
         const computedInitialState =
           typeof initialState === 'function' ? initialState() : initialState;
+
         const setState = newStateOrCb => {
           const newStateFn =
             typeof newStateOrCb === 'function'
@@ -98,6 +108,8 @@ const makeMakeUseEffect = (registerOnUpdatedCallback, hooksMap) => {
   };
 };
 
+// Higher-Order Function that replaces hooks so they know which component
+// they relate to (at the specified VDOMPointer)
 const makeRegisterHooks =
   (hooksMap, makeUseState, makeUseEffect) => (VDOMPointer, isFirstRender) => {
     if (isFirstRender) {
@@ -130,7 +142,7 @@ export const createHooks = (onUpdate, registerOnUpdatedCallback) => {
   // individual hooks have the following structure { state: [], effects: []}
   const hooks = { current: null };
   const boundOnUpdate = () => onUpdate(hooks.current);
-  const makeUseState = makeMakeUseState(boundOnUpdate, hooksMap);
+  const makeUseState = createMakeUseState(boundOnUpdate, hooksMap);
 
   const makeUseEffect = makeMakeUseEffect(registerOnUpdatedCallback, hooksMap);
   const registerHooks = makeRegisterHooks(

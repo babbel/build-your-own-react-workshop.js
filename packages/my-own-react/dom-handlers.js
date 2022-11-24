@@ -278,7 +278,7 @@ const createRoot = rootElement => ({
   rootElement,
   render: rootChild => {
     let renderedElementsMap = {};
-
+    // subscribes to DOM changes which are driven by state changes
     startRenderSubscription(rootChild, (renderableVDOM, diff) => {
       if (Object.keys(renderedElementsMap).length === 0) {
         const rootChildAsHTML = renderElementToHtml(
