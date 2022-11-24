@@ -69,6 +69,7 @@ const createRoot = rootElement => ({
   rootElement,
   render: rootChild => {
     let lastChild;
+    // subscribes to DOM changes which are driven by state changes
     startRenderSubscription(rootChild, renderableVDOM => {
       let rootChildAsHTML;
 
