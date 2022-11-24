@@ -78,6 +78,12 @@ const renderComponentElement = (element, VDOM, VDOMPointer) => {
     const FunctionalComponent = type;
     // START HERE
     // How can we render a functional component?
+    // replace me
+    return {
+      type: 'primitive',
+      value:
+        'Your React cannot implement components yet. Checkout the renderComponentElement function',
+    };
   }
   if (typeof children !== 'undefined') {
     const childrenArray = Array.isArray(children) ? children : [children];
