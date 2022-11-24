@@ -7,6 +7,7 @@ export const useState = (...args) => globalHooksReplacer.useState(...args);
 // replace below with correct code
 export const useEffect = () => {};
 
+// compares state changes between updates
 const isStatesDiffer = (prev, next) => {
   if (typeof next === 'object') {
     return JSON.stringify(prev) !== JSON.stringify(next);
@@ -15,6 +16,10 @@ const isStatesDiffer = (prev, next) => {
   return prev !== next;
 };
 
+// Creates the unique useState for each component element.
+// onUpdate should be called after state update to re-render the DOM.
+// hooksMap contains each hook in relation to its VDOM pointer.
+// VDOMPointer is specific per component.
 const createMakeUseState =
   (onUpdate, hooksMap) => (VDOMPointer, isFirstRender) => {
     let stateIndexRef = { current: 0 };
@@ -22,12 +27,17 @@ const createMakeUseState =
     if (isFirstRender) {
       hooksMapPointer.state = [];
     }
+
+    // this is what gets called in the React component when you use useState()
     return initialState => {
       const stateIndex = stateIndexRef.current;
       stateIndexRef.current += 1;
       if (isFirstRender) {
+        // In React, initialState can be a function for lazy state initilisation
+        // So to handle that, we should call the initialState if it's a function
         const computedInitialState =
           typeof initialState === 'function' ? initialState() : initialState;
+
         const setState = newStateOrCb => {
           const newStateFn =
             typeof newStateOrCb === 'function'
@@ -101,6 +111,8 @@ const createMakeUseEffect = (registerOnUpdatedCallback, hooksMap) => {
   };
 };
 
+// Higher-Order Function that replaces hooks so they know which component
+// they relate to (at the specified VDOMPointer)
 const makeRegisterHooks =
   (hooksMap, makeUseState) => (VDOMPointer, isFirstRender) => {
     if (isFirstRender) {
