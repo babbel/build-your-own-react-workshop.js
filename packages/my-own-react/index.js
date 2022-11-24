@@ -13,11 +13,6 @@ import { createHooks, useEffect, useState } from './hooks';
 export { useEffect, useState };
 import { getRenderableVDOMDiff } from './diff';
 
-// export const useState = (initialState) => [typeof initialState === 'function' ? initialState() : initialState, () => {}];
-// DON'T FORGET
-// Once you have useEffect available globally, you can remove this line
-export const useEffect = () => {};
-
 /*
 
 VDOM with pointer idea
@@ -154,9 +149,9 @@ export const startRenderSubscription = (element, updateCallback) => {
     previous: {},
     current: {},
   };
-  // DON'T FORGET
-  // You will need to find the right place to call afterUpdate
+
   let afterUpdate;
+
   const registerOnUpdatedCallback = callback => {
     afterUpdate = callback;
   };
@@ -169,6 +164,8 @@ export const startRenderSubscription = (element, updateCallback) => {
     vdom.current = [];
 
     updateCallback(renderableVDOM, diff);
+
+    afterUpdate();
   };
 
   const hooks = createHooks(update, registerOnUpdatedCallback);

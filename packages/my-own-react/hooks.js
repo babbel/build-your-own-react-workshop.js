@@ -4,7 +4,8 @@ let globalHooksReplacer = {};
 
 export const useState = (...args) => globalHooksReplacer.useState(...args);
 // DON'T FORGET
-// useEffect will need to be made available globally
+// replace below with correct code
+export const useEffect = () => {};
 
 const isStatesDiffer = (prev, next) => {
   if (typeof next === 'object') {
@@ -115,6 +116,7 @@ export const createHooks = (onUpdate, registerOnUpdatedCallback) => {
   // hooksMap[[0,0,0]] is the hooks for the component with VDOMPointer [0, 0, 0]
   const hooksMap = {};
   // individual hooks have the following structure { state: [], effects: []}
+  const hooks = { current: null };
   const boundOnUpdate = () => onUpdate(hooks.current);
   const makeUseState = createMakeUseState(boundOnUpdate, hooksMap);
   const makeUseEffect = createMakeUseEffect(
