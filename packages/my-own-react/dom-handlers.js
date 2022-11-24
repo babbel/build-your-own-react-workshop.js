@@ -5,7 +5,7 @@ import {
 } from './vdom-helpers';
 import { diffType, propsDiffType, diffApplicationOrder } from './diff';
 
-// should appear in chapter-1/step-3
+// map of eventHandlers that the ToDo app requires
 const eventHandlersMap = {
   onClick: 'click',
   // for the `change` event to trigger, the user is required to leave the field and come back
@@ -28,11 +28,11 @@ const applyPropToHTMLElement = ({ key, value }, element) => {
   element[key] = value;
 };
 
-const renderComponentElementToHtml = (
+// expects a JSX element and returns an HTML element
+const renderTagElementToHtml = (
   { props: { children, ...props }, type },
   renderedElementsMap,
 ) => {
-  // should appear in chapter-1/step-2
   const domElement = document.createElement(type);
   // should appear in chapter-1/step-3
   Object.entries(props).forEach(([key, value]) => {
@@ -71,7 +71,7 @@ const renderPrimitiveToHtml = ({ value }) => {
 const renderElementToHtml = (element, renderedElementsMap) => {
   const renderedElement = isPrimitiveElement(element)
     ? renderPrimitiveToHtml(element)
-    : renderComponentElementToHtml(element, renderedElementsMap);
+    : renderTagElementToHtml(element, renderedElementsMap);
   renderedElementsMap[element.VDOMPointer] = renderedElement;
   return renderedElement;
 };
@@ -81,7 +81,7 @@ const findNextSiblingOfVDOMPointer = (
   VDOMPointer,
   parentPointer,
 ) => {
-    /*
+  /*
         Given the following VDOM
         <App>
           <div>
@@ -148,7 +148,6 @@ const applyNodeAdded = (
   // Careful, some primitive elements don't render anything to the DOM
   // and don't forget to update the renderedElementsMap
 };
-
 
 const applyPrimitiveNodeUpdate = (
   { renderedElementsMap },
