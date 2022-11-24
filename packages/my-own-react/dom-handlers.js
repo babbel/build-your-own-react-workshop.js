@@ -1,6 +1,5 @@
-const renderTagElementToHtml = (
-  { props, type }
-) => {
+// expects a JSX element => returns an HTML element
+const renderTagElementToHtml = ({ props, type }) => {
   const domElement = document.createElement(type);
   // START HERE
   // How we can apply the props we receive to our DOM element?
