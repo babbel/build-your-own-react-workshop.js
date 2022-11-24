@@ -27,8 +27,51 @@
     <title>React App</title>
   </head>
   <body>
+    <script src="./walkthroughText.js"></script>
+    <script>
+      function openSnackbar() {
+        var snackbar = document.getElementById('snackbar');
+        // get git branch and correct walkthrough text
+        fetch('generatedGitBranch.json')
+          .then(function (response) {
+            return response.json();
+          })
+          .then(function (data) {
+            var p = document.getElementById('snackbarText');
+            var text =
+              walkthroughText[data.gitBranch] ||
+              'This branch has no relevant hints.';
+
+            var textNode = document.createTextNode(text);
+            p.appendChild(textNode);
+            snackbar.appendChild(p);
+          })
+          .catch(function (err) {
+            console.log(err);
+          });
+
+        snackbar.className = 'show';
+      }
+      function closeSnackbar() {
+        var snackbar = document.getElementById('snackbar');
+        snackbar.className = '';
+        // clear text
+        var p = document.getElementById('snackbarText');
+        p.innerHTML = '';
+      }
+
+      // open snackbar onload
+      window.onload = function () {
+        openSnackbar();
+      };
+    </script>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
+    <div id="snackbar">
+      <button id="closeBtn" onClick="closeSnackbar()">X</button>
+      <p id="snackbarText"></p>
+    </div>
+    <button id="snackbarBtn" onClick="openSnackbar()">Open Hint</button>
     <!--
       This HTML file is a template.
       If you open it directly in the browser, you will see an empty page.
