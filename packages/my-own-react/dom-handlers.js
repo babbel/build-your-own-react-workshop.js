@@ -30,7 +30,11 @@ const applyPropToHTMLElement = ({ key, value }, element) => {
     addEventHandler(element, { key, value });
     return;
   }
-  element[key] = value;
+  if (element[key] !== undefined) {
+    element[key] = value;
+  } else {
+    element.setAttribute(key, value);
+  }
 };
 
 const removePropFromHTMLElement = ({ key, oldValue }, element) => {
