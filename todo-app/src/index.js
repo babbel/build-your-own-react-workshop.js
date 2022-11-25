@@ -19,7 +19,7 @@ const SimpleTest = () => (
   </div>
 );
 
-const Test = ({ message }) => (
+const SimpleTestWithProps = ({ message }) => (
   <div className="test" aria-hidden>
     <span>{message}</span>
   </div>
@@ -27,21 +27,13 @@ const Test = ({ message }) => (
 
 const MegaTest = () => (
   <div>
-    <Test message="Hello world!" />
-    <Test message="Super fun!" />
+    <SimpleTestWithProps message="Hello world!" />
+    <SimpleTestWithProps message="Super fun!" />
   </div>
 );
 
-// const root = DOMHandlers.createRoot(document.getElementById('root'));
-// root.render(<App />);
-
-// const root = DOMHandlers.createRoot(document.getElementById('root'));
-// root.render(<MegaTest />);
-
-// const root = DOMHandlers.createRoot(document.getElementById('root'));
-// root.render(<Test message="Hello World 2!" />);
-
 const root = DOMHandlers.createRoot(document.getElementById('root'));
+// Once SimpleTest works, you can try to render SimpleTestWithProps, and then MegaTest
 root.render(<SimpleTest />);
 
 // render fallback
