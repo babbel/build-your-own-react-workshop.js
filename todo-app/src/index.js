@@ -13,35 +13,13 @@ fallbackEl.append(
 );
 fallbackEl.setAttribute('classname', 'fallback');
 
+const root = DOMHandlers.createRoot(document.getElementById('root'));
+// Now let's try to handle attributes here, you can try to handle simple ones first such as id
+// and get to `className` closer to the end
+root.render(<div className="test" id="test" aria-hidden></div>);
+
 // const root = DOMHandlers.createRoot(rootElement);
 // root.render(<App />);
-
-/*
-const SimpleTest = () => (
-  <div className="test" aria-hidden>
-    <span>Hello World!</span>
-  </div>
-);
-
-const Test = ({ message }) => (
-  <div className="test" aria-hidden>
-    <span>{message}</span>
-  </div>
-);
-
-const MegaTest = () => (
-  <div>
-    <Test message="Hello world!" />
-    <Test message="Super fun!" />
-  </div>
-);
-
-const root = DOMHandlers.createRoot(document.getElementById('root'));
-root.render(<div className="test" id="test" aria-hidden></div>);
-*/
-
-const root = DOMHandlers.createRoot(document.getElementById('root'));
-root.render(<div></div>);
 
 // render fallback
 if (!rootElement.hasChildNodes()) rootElement.append(fallbackEl);
