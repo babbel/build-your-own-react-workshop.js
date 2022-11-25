@@ -1,6 +1,5 @@
 const PRIMITIVE_TYPE = 'primitive';
 
-// should appear in chapter-2/step-1
 export const isPrimitiveElement = element => element.type === PRIMITIVE_TYPE;
 
 
@@ -77,7 +76,6 @@ export const findRenderableByVDOMPointer = (renderableVDOM, domPointer) => {
   );
 };
 
-// should appear in chapter-4/step-1
 export const isChildVDOMPointer = (childVDOMPointer, parentVDOMPointer) => {
   // everything is a child of the root level pointer []
   if (parentVDOMPointer.length === 0) {
@@ -88,7 +86,7 @@ export const isChildVDOMPointer = (childVDOMPointer, parentVDOMPointer) => {
   return new RegExp(`^${parentVDOMPointer},(\\d+,?)+`).test(childVDOMPointer);
 };
 
-// should appear in chapter-4/step-1
+// Find the root pointers of an array of pointers
 export const findRootVDOMPointers = pointers => {
   if (pointers.length === 0) {
     return pointers;
