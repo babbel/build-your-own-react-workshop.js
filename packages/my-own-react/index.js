@@ -70,7 +70,7 @@ const renderComponentElement = (element, VDOM, VDOMPointer) => {
 
   setCurrentVDOMElement(
     VDOMPointer,
-    createVDOMElement(element),
+    createVDOMElement(element, VDOMPointer),
     VDOM,
   );
 
