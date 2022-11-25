@@ -109,7 +109,7 @@ const renderComponentElement = (element, VDOM, VDOMPointer, hooks) => {
 };
 
 const renderPrimitive = (value, VDOM, VDOMPointer) => {
-  const VDOMElement = createVDOMElement(value);
+  const VDOMElement = createVDOMElement(value, VDOMPointer);
   setCurrentVDOMElement(
     VDOMPointer,
     VDOMElement,
