@@ -28,6 +28,7 @@
   </head>
   <body>
     <script src="./walkthroughText.js"></script>
+    <script src="./status.js"></script>
     <script>
       function openSnackbar() {
         var snackbar = document.getElementById('snackbar');
@@ -45,6 +46,7 @@
             var textNode = document.createTextNode(text);
             p.appendChild(textNode);
             snackbar.appendChild(p);
+            window.setupStatusChecker(data.gitBranch);
           })
           .catch(function (err) {
             console.log(err);
