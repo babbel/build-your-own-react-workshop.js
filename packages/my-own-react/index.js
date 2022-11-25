@@ -6,8 +6,6 @@ import {
   getVDOMElement,
   setCurrentVDOMElement,
   createVDOMElement,
-  createRenderableVDOMElement,
-  createPrimitiveVDOMElement,
 } from './vdom-helpers';
 import { createHooks, useState } from './hooks';
 export { useState };
@@ -68,25 +66,23 @@ const renderComponentElement = (element, VDOM, VDOMPointer, hooks) => {
     props: { children, ...props },
     type,
   } = element;
+
   const previousDOMElement = (getVDOMElement(VDOMPointer, VDOM.previous) || {})
     .element;
   const isFirstRender =
     previousDOMElement === undefined ||
     previousDOMElement.type !== element.type;
-  const elementAsRenderableVDOMElement = createRenderableVDOMElement(
-    props,
-    type,
+
+  setCurrentVDOMElement(
     VDOMPointer,
+    createVDOMElement(element),
+    VDOM,
   );
+
   if (typeof type === 'function') {
     const FunctionalComponent = type;
     hooks.registerHooks(VDOMPointer, isFirstRender);
     const renderedElement = FunctionalComponent({ children, ...props });
-    setCurrentVDOMElement(
-      VDOMPointer,
-      createVDOMElement(elementAsRenderableVDOMElement),
-      VDOM,
-    );
     const renderedElementDOM = render(
       renderedElement,
       VDOM,
@@ -97,41 +93,29 @@ const renderComponentElement = (element, VDOM, VDOMPointer, hooks) => {
   }
   if (typeof children !== 'undefined') {
     const childrenArray = Array.isArray(children) ? children : [children];
-    setCurrentVDOMElement(
-      VDOMPointer,
-      createVDOMElement(elementAsRenderableVDOMElement),
-      VDOM,
-    );
     const renderedChildren = childrenArray.map((child, index) =>
       render(child, VDOM, [...VDOMPointer, index], hooks),
     );
     return {
-      ...elementAsRenderableVDOMElement,
+      ...element,
       props: {
+        ...props,
         children: renderedChildren,
-        ...elementAsRenderableVDOMElement.props,
       },
+      VDOMPointer,
     };
   }
-  setCurrentVDOMElement(
-    VDOMPointer,
-    createVDOMElement(elementAsRenderableVDOMElement),
-    VDOM,
-  );
-  return elementAsRenderableVDOMElement;
+  return { ...element, VDOMPointer };
 };
 
 const renderPrimitive = (value, VDOM, VDOMPointer) => {
-  const elementAsRenderableVDOMElement = createPrimitiveVDOMElement(
-    value,
-    VDOMPointer,
-  );
+  const VDOMElement = createVDOMElement(value);
   setCurrentVDOMElement(
     VDOMPointer,
-    createVDOMElement(elementAsRenderableVDOMElement),
+    VDOMElement,
     VDOM,
   );
-  return elementAsRenderableVDOMElement;
+  return VDOMElement.element;
 };
 
 const render = (element, VDOM, VDOMPointer, hooks) =>
