@@ -24,7 +24,11 @@ const applyPropToHTMLElement = ({ key, value }, element) => {
     addEventHandler(element, { key, value });
     return;
   }
-  element[key] = value;
+  if (element[key] !== undefined) {
+    element[key] = value;
+  } else {
+    element.setAttribute(key, value);
+  }
 };
 
 // expects a JSX element and returns an HTML element
