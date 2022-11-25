@@ -156,6 +156,8 @@ const findNextSiblingOfVDOMPointer = (
   - VDOMPointer: the pointer to the position at which we want to insert the node
   - node: the renderableVDOMElement we want to insert into the DOM
   - parentPointer: the pointer to the parent of the VDOMPointer and the sibling
+  Side effects:
+  Updates the browser's DOM with the newly added node as well as the reference in the renderedElementsMap.
 */
 const applyNodeAdded = (
   { renderedElementsMap, renderableVDOM },
@@ -178,6 +180,8 @@ const applyNodeAdded = (
   }
   - VDOMPointer: the pointer to the position at which we want to insert the node
   - newElement: the renderableVDOMElement primitive element we want to update the browser's DOM with
+  Side effects:
+  Updates the browser's DOM
 */
 const applyPrimitiveNodeUpdate = (
   { renderedElementsMap },
@@ -194,6 +198,8 @@ const applyPrimitiveNodeUpdate = (
   }
   - VDOMPointer: the pointer to the element which props we want to update
   - propsChanged: the list of prop diff item we want to apply
+  Side effects:
+  Updates the browser's DOM with the applied props
 */
 const applyProps = (
   { renderedElementsMap },
