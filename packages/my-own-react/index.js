@@ -5,8 +5,6 @@ export default React;
 import {
   setCurrentVDOMElement,
   createVDOMElement,
-  createRenderableVDOMElement,
-  createPrimitiveVDOMElement,
 } from './vdom-helpers';
 
 export const useState = initialState => [
@@ -69,11 +67,13 @@ const renderComponentElement = (element, VDOM, VDOMPointer) => {
     props: { children, ...props },
     type,
   } = element;
-  const elementAsRenderableVDOMElement = createRenderableVDOMElement(
-    props,
-    type,
+
+  setCurrentVDOMElement(
     VDOMPointer,
+    createVDOMElement(element),
+    VDOM,
   );
+
   if (typeof type === 'function') {
     const FunctionalComponent = type;
     // START HERE
@@ -87,41 +87,29 @@ const renderComponentElement = (element, VDOM, VDOMPointer) => {
   }
   if (typeof children !== 'undefined') {
     const childrenArray = Array.isArray(children) ? children : [children];
-    setCurrentVDOMElement(
-      VDOMPointer,
-      createVDOMElement(elementAsRenderableVDOMElement),
-      VDOM,
-    );
     const renderedChildren = childrenArray.map((child, index) =>
       render(child, VDOM, [...VDOMPointer, index]),
     );
     return {
-      ...elementAsRenderableVDOMElement,
+      ...element,
       props: {
+        ...props,
         children: renderedChildren,
-        ...elementAsRenderableVDOMElement.props,
       },
+      VDOMPointer,
     };
   }
-  setCurrentVDOMElement(
-    VDOMPointer,
-    createVDOMElement(elementAsRenderableVDOMElement),
-    VDOM,
-  );
-  return elementAsRenderableVDOMElement;
+  return { ...element, VDOMPointer };
 };
 
 const renderPrimitive = (value, VDOM, VDOMPointer) => {
-  const elementAsRenderableVDOMElement = createPrimitiveVDOMElement(
-    value,
-    VDOMPointer,
-  );
+  const VDOMElement = createVDOMElement(value);
   setCurrentVDOMElement(
     VDOMPointer,
-    createVDOMElement(elementAsRenderableVDOMElement),
+    VDOMElement,
     VDOM,
   );
-  return elementAsRenderableVDOMElement;
+  return VDOMElement.element;
 };
 
 const render = (element, VDOM, VDOMPointer) =>

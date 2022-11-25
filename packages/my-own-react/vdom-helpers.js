@@ -2,6 +2,8 @@ const PRIMITIVE_TYPE = 'primitive';
 
 export const isPrimitiveElement = element => element.type === PRIMITIVE_TYPE;
 
+
+// Function to retrieve the element associated to the pointer in the provided VDOM 
 export const getVDOMElement = (pointer, VDOM) =>
   pointer.reduce(
     (targetElement, currentIndex) =>
@@ -11,6 +13,7 @@ export const getVDOMElement = (pointer, VDOM) =>
     VDOM,
   );
 
+// Function to set the provided element at the position of the pointer in the provided VDOM 
 export const setCurrentVDOMElement = (pointer, element, VDOM) => {
   if (pointer.length === 0) {
     VDOM.current = element;
@@ -21,23 +24,29 @@ export const setCurrentVDOMElement = (pointer, element, VDOM) => {
   pointerToParent.renderedChildren[currentChildIndex] = element;
 };
 
-export const createVDOMElement = (element, renderedChildren = []) => ({
-  element,
-  renderedChildren,
-});
+// Helper function to create the VDOMElement structure for a given element
+export const createVDOMElement = (element, VDOMPointer) => {
+  let elementAsVDOMElement;
+  if (typeof element !== 'object') {
+    elementAsVDOMElement = {
+      type: PRIMITIVE_TYPE,
+      value: element,
+      VDOMPointer,
+    };
+  } else {
+    elementAsVDOMElement = {
+      type: element.type,
+      props: element.props,
+      VDOMPointer
+    };
+  }
+  return {
+    element: elementAsVDOMElement,
+    renderedChildren: [],
+  };
+}
 
-export const createRenderableVDOMElement = (props, type, VDOMPointer) => ({
-  props,
-  type,
-  VDOMPointer,
-});
-
-export const createPrimitiveVDOMElement = (value, VDOMPointer) => ({
-  type: PRIMITIVE_TYPE,
-  value,
-  VDOMPointer,
-});
-
+// Helper function to find a given renderable element in the renderableVDOM
 export const findRenderableByVDOMPointer = (renderableVDOM, domPointer) => {
   if (!renderableVDOM) {
     return;
