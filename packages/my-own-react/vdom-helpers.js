@@ -1,9 +1,9 @@
 const PRIMITIVE_TYPE = 'primitive';
 
-// should appear in chapter-2/step-1
 export const isPrimitiveElement = element => element.type === PRIMITIVE_TYPE;
 
-// should appear in chapter-2/step-1
+
+// Function to retrieve the element associated to the pointer in the provided VDOM 
 export const getVDOMElement = (pointer, VDOM) =>
   pointer.reduce(
     (targetElement, currentIndex) =>
@@ -13,7 +13,7 @@ export const getVDOMElement = (pointer, VDOM) =>
     VDOM,
   );
 
-// should appear in chapter-2/step-1
+// Function to set the provided element at the position of the pointer in the provided VDOM 
 export const setCurrentVDOMElement = (pointer, element, VDOM) => {
   if (pointer.length === 0) {
     VDOM.current = element;
@@ -24,25 +24,29 @@ export const setCurrentVDOMElement = (pointer, element, VDOM) => {
   pointerToParent.renderedChildren[currentChildIndex] = element;
 };
 
-// should appear in chapter-2/step-1
-export const createVDOMElement = (element, renderedChildren = []) => ({
-  element,
-  renderedChildren,
-});
+// Helper function to create the VDOMElement structure for a given element
+export const createVDOMElement = (element, VDOMPointer) => {
+  let elementAsVDOMElement;
+  if (typeof element !== 'object') {
+    elementAsVDOMElement = {
+      type: PRIMITIVE_TYPE,
+      value: element,
+      VDOMPointer,
+    };
+  } else {
+    elementAsVDOMElement = {
+      type: element.type,
+      props: element.props,
+      VDOMPointer
+    };
+  }
+  return {
+    element: elementAsVDOMElement,
+    renderedChildren: [],
+  };
+}
 
-export const createRenderableVDOMElement = (props, type, VDOMPointer) => ({
-  props,
-  type,
-  VDOMPointer,
-});
-
-export const createPrimitiveVDOMElement = (value, VDOMPointer) => ({
-  type: PRIMITIVE_TYPE,
-  value,
-  VDOMPointer,
-});
-
-// diff should appear in chapter-3/step-2
+// Helper function to transform a string pointer into an array VDOMPointer
 export const vdomPointerKeyToVDOMPointerArray = pointerAsString => {
   // The empty array ends up with an empty string, so this needs extra care when transforming
   if (pointerAsString === '') {
@@ -52,6 +56,7 @@ export const vdomPointerKeyToVDOMPointerArray = pointerAsString => {
   return pointerAsString.split(',').map(s => parseInt(s));
 };
 
+// Helper function to find a given renderable element in the renderableVDOM
 export const findRenderableByVDOMPointer = (renderableVDOM, domPointer) => {
   if (!renderableVDOM) {
     return;
