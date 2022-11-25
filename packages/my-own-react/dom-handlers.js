@@ -14,12 +14,11 @@ const eventHandlersMap = {
   onSubmit: 'submit',
 };
 const isEventHandlerProp = key => Object.keys(eventHandlersMap).includes(key);
-// should appear in chapter-1/step-3
+
 const addEventHandler = (domElement, { key, value }) => {
   domElement.addEventListener(eventHandlersMap[key], value);
 };
 
-// should appear in chapter-1/step-3
 const applyPropToHTMLElement = ({ key, value }, element) => {
   if (isEventHandlerProp(key)) {
     addEventHandler(element, { key, value });
@@ -34,11 +33,9 @@ const renderTagElementToHtml = (
   renderedElementsMap,
 ) => {
   const domElement = document.createElement(type);
-  // should appear in chapter-1/step-3
   Object.entries(props).forEach(([key, value]) => {
     applyPropToHTMLElement({ key, value }, domElement);
   });
-  // should appear in chapter-1/step-6
   if (children) {
     const childrenAsDomElement = children.map(child =>
       renderElementToHtml(child, renderedElementsMap),
@@ -49,11 +46,9 @@ const renderTagElementToHtml = (
       }
     });
   }
-  // should appear in chapter-1/step-2
   return domElement;
 };
 
-// should appear in chapter-1/step-6
 const renderPrimitiveToHtml = ({ value }) => {
   switch (typeof value) {
     case 'string':
@@ -212,22 +207,6 @@ const createRoot = rootElement => ({
       } else {
         applyDiff(diff, renderedElementsMap, renderableVDOM);
       }
-      /* version before chapter-4/step-1
-      // update should appear in chapter-2/step-1
-        if (!lastChild) {
-          const rootChildAsHTML = renderElementToHtml(renderableVDOM);
-          rootElement.appendChild(rootChildAsHTML);
-        } else {
-          const rootChildAsHTML = renderElementToHtml(renderableVDOM, renderedElementsMap);
-          rootElement.replaceChild(rootChildAsHTML, lastChild);
-        }
-        lastChild = rootChildAsHTML;
-      */
-      /* version before chapter-2/step-1
-     // should appear in chapter-1/step-2
-      const rootChildAsHTML = renderElementToHtml(renderableVDOM);
-      rootElement.appendChild(rootChildAsHTML);
-     */
     });
   },
 });

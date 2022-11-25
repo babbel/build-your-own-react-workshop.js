@@ -156,7 +156,10 @@ export const startRenderSubscription = (element, updateCallback) => {
   const update = hooks => {
     const renderableVDOM = rootRender(element, hooks, vdom);
 
+    // We calculate the diff between the renderableVDOM and the previous VDOM here
     const diff = getRenderableVDOMDiff(renderableVDOM, vdom);
+    // For now we only log it, in the next step we will start using it
+    console.log(diff);
 
     vdom.previous = vdom.current;
     vdom.current = [];
