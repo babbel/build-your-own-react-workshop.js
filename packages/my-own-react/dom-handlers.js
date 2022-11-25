@@ -71,6 +71,21 @@ const renderElementToHtml = (element, renderedElementsMap) => {
   return renderedElement;
 };
 
+/* 
+  This is a helper function to retrieve the insertion point of an element within the
+  browser's DOM (which isn't trivial, as some elements such as `false` or `undefined` are part of the
+  renderable VDOM, but not part of the actual DOM).
+  Input
+  - {
+    renderedElementsMap: a map with keys VDOMPointer and values elements rendered in the browser
+    renderableVDOM: the renderableVDOM for the current update cycle
+  }
+  - VDOMPointer: the pointer to the element for which we want to find the next sibling
+  - parentPointer: the pointer to the parent of the VDOMPointer and the sibling
+  Output
+  - The next sibling of the VDOMPointer: a dom element currently rendered in the browser if found, undefined 
+    if the node pointed by the VDOMPointer is the last rendered child of the parent
+*/
 const findNextSiblingOfVDOMPointer = (
   { renderedElementsMap, renderableVDOM },
   VDOMPointer,
@@ -131,6 +146,17 @@ const findNextSiblingOfVDOMPointer = (
   return nextSibling;
 };
 
+/*
+  Function to apply to the browser's DOM a node added diff item
+  Input:
+  - {
+    renderedElementsMap: a map with keys VDOMPointer and values elements rendered in the browser
+    renderableVDOM: the renderableVDOM for the current update cycle
+  }
+  - VDOMPointer: the pointer to the position at which we want to insert the node
+  - node: the renderableVDOMElement we want to insert into the DOM
+  - parentPointer: the pointer to the parent of the VDOMPointer and the sibling
+*/
 const applyNodeAdded = (
   { renderedElementsMap, renderableVDOM },
   { VDOMPointer, payload: { node, parentPointer } },
@@ -141,9 +167,18 @@ const applyNodeAdded = (
   // 1. Create the right HTML element for that node
   // 2. Find the right place to insert the node (ps: the provided `findNextSiblingOfVDOMPointer` function might come in handy)
   // Careful, some primitive elements don't render anything to the DOM
-  // and don't forget to update the renderedElementsMap
+  // and don't forget to update the renderedElementsMap after the real DOM is updated.
 };
 
+/*
+  Function to apply to the browser's DOM a primitive node update diff item
+  Input:
+  - {
+    renderedElementsMap: a map with keys VDOMPointer and values elements rendered in the browser
+  }
+  - VDOMPointer: the pointer to the position at which we want to insert the node
+  - newElement: the renderableVDOMElement primitive element we want to update the browser's DOM with
+*/
 const applyPrimitiveNodeUpdate = (
   { renderedElementsMap },
   { VDOMPointer, payload: { newElement } },
@@ -151,11 +186,25 @@ const applyPrimitiveNodeUpdate = (
   renderedElementsMap[VDOMPointer].nodeValue = newElement.value;
 };
 
+/*
+  Function to apply to the browser's DOM a props diff item
+  Input:
+  - {
+    renderedElementsMap: a map with keys VDOMPointer and values elements rendered in the browser
+  }
+  - VDOMPointer: the pointer to the element which props we want to update
+  - propsChanged: the list of prop diff item we want to apply
+*/
 const applyProps = (
   { renderedElementsMap },
   { VDOMPointer, payload: propsChanged },
 ) => {
+  // Loop through all prop diff items
   Object.entries(propsChanged).forEach(
+    // Extracting for each the propDiffType (updated or removed)
+    // As well as the oldValue and the newValue for the given prop
+    // Example of what each of those values could be:
+    // [key = 'id', [propdDiffType = 'updated', { oldValue: 'main-title', newValue: 'sub-title' }]]
     ([key, [propDiffType, { oldValue, newValue }]]) => {
       if (propDiffType === propsDiffType.updated) {
         if (isEventHandlerProp(key)) {
@@ -165,11 +214,14 @@ const applyProps = (
         }
         // START HERE
         // How to update the attribute on the element
+        // Here we are trying to update the attribute `key` of the element at VDOMPointer within the browser's DOM
+        // from it's old value `oldValue` to its new value `newValue`
       }
     },
   );
 };
 
+// A map of applicators to simplify application
 const diffApplicators = {
   [diffType.nodeRemoved]: () => {},
   [diffType.nodeAdded]: applyNodeAdded,
@@ -178,12 +230,23 @@ const diffApplicators = {
   [diffType.props]: applyProps,
 };
 
+/*
+  Function to apply the diff to the browser's DOM
+  Input:
+  - diff: the diff we want to apply to the DOM
+  - renderedElementsMap: a map with keys VDOMPointer and values elements rendered in the browser
+  - renderableVDOM: the renderableVDOM for the current update cycle
+  Side effects:
+  Updates the browser's DOM as well as the references in the renderedElementsMap.
+*/
 const applyDiff = (diff, renderedElementsMap, renderableVDOM) => {
+  // Sort diff item so applying them is safe
   const sortedDiffs = diff.sort(
     (a, b) =>
       diffApplicationOrder.indexOf(a.type) -
       diffApplicationOrder.indexOf(b.type),
   );
+  // Apply them all!
   sortedDiffs.forEach(diffItem =>
     diffApplicators[diffItem.type](
       { renderedElementsMap, renderableVDOM },
@@ -205,6 +268,8 @@ const createRoot = rootElement => ({
         );
         rootElement.appendChild(rootChildAsHTML);
       } else {
+        // Now on update instead of replacing the whole browser's DOM
+        // we will try to only do targeted updates of it
         applyDiff(diff, renderedElementsMap, renderableVDOM);
       }
     });
