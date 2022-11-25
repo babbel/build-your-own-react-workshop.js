@@ -65,13 +65,22 @@ const areDependenciesEqual = (a, b) =>
   Array.isArray(b) &&
   a.every((element, index) => element === b[index]);
 
-const makeMakeUseEffect = (registerOnUpdatedCallback, hooksMap) => {
+const createMakeUseEffect = (registerOnUpdatedCallback, hooksMap) => {
+  // Here we keep a combined callback reference that is the
+  // function we want to call after a render cycle
   const combinedCallbackRef = { current: () => {} };
+  // After every update, we will call that callback
+  // and then reset it so the effects are ran just once
   registerOnUpdatedCallback(() => {
     combinedCallbackRef.current();
     combinedCallbackRef.current = () => {};
   });
+  // This is a utility function that allows you to set a
+  // callback to be ran after the next render
   const registerEffectForNextRender = callback => {
+    // it updates the combined callback reference
+    // to call itself first (so it calls all the previously registered callbacks)
+    // and then calls the newly registered one
     const { current } = combinedCallbackRef;
     combinedCallbackRef.current = () => {
       current();
@@ -129,7 +138,7 @@ export const createHooks = (onUpdate, registerOnUpdatedCallback) => {
   const boundOnUpdate = () => onUpdate(hooks.current);
   const makeUseState = createMakeUseState(boundOnUpdate, hooksMap);
 
-  const makeUseEffect = makeMakeUseEffect(registerOnUpdatedCallback, hooksMap);
+  const makeUseEffect = createMakeUseEffect(registerOnUpdatedCallback, hooksMap);
   const registerHooks = makeRegisterHooks(
     hooksMap,
     makeUseState,
