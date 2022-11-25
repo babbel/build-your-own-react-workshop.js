@@ -47,11 +47,9 @@ const renderTagElementToHtml = (
   renderedElementsMap,
 ) => {
   const domElement = document.createElement(type);
-
   Object.entries(props).forEach(([key, value]) => {
     applyPropToHTMLElement({ key, value }, domElement);
   });
-
   if (children) {
     const childrenAsDomElement = children.map(child =>
       renderElementToHtml(child, renderedElementsMap),
@@ -62,7 +60,6 @@ const renderTagElementToHtml = (
       }
     });
   }
-
   return domElement;
 };
 
