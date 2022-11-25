@@ -11,10 +11,12 @@ let fallbackEl = document.createElement('article');
 fallbackEl.append(
   'Your render function is not returning anything yet. Check out my-own-react/dom-handlers.js to get started!',
 );
-fallbackEl.setAttribute('classname', 'fallback');
+fallbackEl.setAttribute('class', 'fallback');
 
 const root = DOMHandlers.createRoot(rootElement);
-root.render(<App />);
+// DON'T FORGET
+// You can replace the div here by another tag, for example a span, to make sure your code is fully working!
+root.render(<span />);
 
 // render fallback
 if (!rootElement.hasChildNodes()) rootElement.append(fallbackEl);
