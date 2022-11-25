@@ -82,8 +82,8 @@ const createMakeUseEffect = (registerOnUpdatedCallback, hooksMap) => {
   const registerEffectForNextRender = callback => {
     const { current } = combinedCallbackRef;
     // it updates the combined callback reference
-    // to call itself first (so call all the previously registered callbacks)
-    // and then call the newly registered one
+    // to call itself first (so it calls all the previously registered callbacks)
+    // and then calls the newly registered one
     combinedCallbackRef.current = () => {
       current();
       callback();
@@ -103,7 +103,8 @@ const createMakeUseEffect = (registerOnUpdatedCallback, hooksMap) => {
       // DON'T FORGET FOR AFTER THE EFFECT RUNNING ON EVERY UPDATE
       // With this code, the effect will be run on every render update
       // how can we make sure it only runs when the dependencies were updated?
-      // ps: we created for you a areDependenciesEqual function
+      // ps: we created for you a areDependenciesEqual function, so you can compare dependencies with
+      // areDependenciesEqual(previousDependencies, currentDependencies)
       registerEffectForNextRender(() => {
         effectCallback();
       });
@@ -122,6 +123,7 @@ const makeRegisterHooks =
     globalHooksReplacer.useState = useState;
     // START HERE
     // We will need to register useEffect so it works for our components
+    // Maybe you can take inspiration from the way we developed useState?
   };
 
 export const createHooks = (onUpdate, registerOnUpdatedCallback) => {
