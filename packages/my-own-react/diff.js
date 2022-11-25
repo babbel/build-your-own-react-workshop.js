@@ -1,5 +1,6 @@
 import { isPrimitiveElement, getVDOMElement } from './vdom-helpers';
 
+// This is a map with all the diff types we will support
 export const diffType = {
   nodeAdded: 'nodeAdded',
   nodeRemoved: 'nodeRemoved',
@@ -8,11 +9,13 @@ export const diffType = {
   props: 'props',
 };
 
+// The props diff has two variations for updated and removed
 export const propsDiffType = {
   updated: 'updated',
   removed: 'removed',
 };
 
+// The following are helper functions to create diff items
 const createNodeAddedPayload = (
   currentRenderableVDOMElement,
   parentPointer,
@@ -51,6 +54,31 @@ const createPrimitiveNodeUpdate = (
   payload: { newElement },
 });
 
+const createPropsDiff = (
+  currentRenderableVDOMElement,
+  changedProps
+) => ({
+  VDOMPointer: currentRenderableVDOMElement.VDOMPointer,
+  type: diffType.props,
+  payload: changedProps,
+});
+
+const createPropsDiffTypeRemoved = (
+  oldValue
+) => ([
+  propsDiffType.removed,
+  { oldValue },
+]);
+
+const createPropsDiffTypeUpdated = (
+  newValue,
+  oldValue
+) => ([
+  propsDiffType.updated,
+  { newValue, oldValue },
+]);
+
+// Diff will need to be applied in a specific order to work correctly
 export const diffApplicationOrder = [
   diffType.nodeRemoved,
   diffType.nodeAdded,
@@ -59,42 +87,39 @@ export const diffApplicationOrder = [
   diffType.props,
 ];
 
+/* 
+  This function will calculate a diff for the renderable VDOM
+  Input
+  - currentRenderableVDOMElement the root element of the renderableVDOM (or the root element of a subtree for recursion)
+  - vdom the VDOMWithHistory structure with the current and previous VDOM
+  - parentPointer the VDOMPointer to the parent of the current element (convenience as in the renderableVDOM, parents might not be part of the structure in case they are components)
+  Output
+  - Diff between currentRenderableVDOMElement and the vdom.previous, an array of diff items created with the helper functions above
+*/
 export const getRenderableVDOMDiff = (
   currentRenderableVDOMElement,
   vdom,
   parentPointer,
 ) => {
+  // Retrieve the previous element in the VDOM for comparison
   const prev = getVDOMElement(
     currentRenderableVDOMElement.VDOMPointer,
     vdom.previous,
   );
 
-  // no change
-  if (!prev && !currentRenderableVDOMElement) {
-    return [];
-  }
-
+  // If there is no previous element at the position for which there is a current element
   if (!prev) {
     // START HERE
     // What type of diff is this?
     return [];
   }
 
-  // DON'T FORGET
-  // Under what condition is a node considered removed?
-  const TODO_REPLACE_ME_WITH_REAL_CONDITION = false;
-  if (TODO_REPLACE_ME_WITH_REAL_CONDITION) {
-    return [createNodeRemoved(currentRenderableVDOMElement)];
-  }
-
+  // Access the actual elements to compare them
   const prevElement = prev.element;
+  // renderableVDOM element don't have renderedChildren, so they are already the element
   const currElement = currentRenderableVDOMElement;
 
-  // Have different types
-  if (
-    typeof prevElement !== typeof currElement ||
-    typeof (prevElement || {}).type !== typeof (currElement || {}).type
-  ) {
+  if (prevElement.type !== currElement.type) {
     return [
       createNodeReplaced(
         currentRenderableVDOMElement,
@@ -104,11 +129,16 @@ export const getRenderableVDOMDiff = (
     ];
   }
 
-  // Both same type 👇
+  // Both same type, let's continue calculting diff 👇
 
   // If both primitive
   if (isPrimitiveElement(prevElement) && isPrimitiveElement(currElement)) {
-    if (prevElement.value !== currElement.value) {
+    // DON'T FORGET
+    // Under which condition is a primitive node updated?
+    // A primitive element has the following structure
+    // { type: 'primitive', value: number | string | boolean | undefined }
+    const REPLACE_THIS_CONDITION = false;
+    if (REPLACE_THIS_CONDITION) {
       return [
         createPrimitiveNodeUpdate(currentRenderableVDOMElement, currElement),
       ];
@@ -118,69 +148,65 @@ export const getRenderableVDOMDiff = (
     return [];
   }
 
+  // Prepare props diff item
   const changedProps = {};
-  // Compare props
+  // Collect all props keys from the previous and current element
   const keys = Array.from(
     new Set([
       ...Object.keys(prevElement.props),
       ...Object.keys(currElement.props),
     ]),
   );
-  for (var index = 0; index < keys.length; index++) {
-    const key = keys[index];
+  // Loop through the props keys
+  for (const key of keys) {
+    // Children is a special prop as it requires us to go recursive so we ignore it here
     if (key === 'children') {
       continue;
     }
+    const currentPropValue = currElement.props[key];
+    const previousPropValue = prevElement.props[key];
 
-    // seperating this case just in case we may wanna delete the prop directly
-    if (!(key in currElement.props)) {
-      changedProps[key] = [
-        propsDiffType.removed,
-        { oldValue: prevElement.props[key] },
-      ];
+    // If the current props have no reference to the prop we evaluate
+    if (typeof currentPropValue === 'undefined') {
+      changedProps[key] = createPropsDiffTypeRemoved(previousPropValue);
       continue;
     }
 
-    if (currElement.props[key] !== prevElement.props[key]) {
-      changedProps[key] = [
-        propsDiffType.updated,
-        { newValue: currElement.props[key], oldValue: prevElement.props[key] },
-      ];
+    // If the current and previous prop value aren't the same
+    if (currentPropValue !== previousPropValue) {
+      changedProps[key] = createPropsDiffTypeUpdated(currentPropValue, previousPropValue);
     }
   }
 
   let diff = [];
   // conditional case to keep output clean
   if (Object.keys(changedProps).length > 0) {
-    diff.push({
-      VDOMPointer: currentRenderableVDOMElement.VDOMPointer,
-      type: diffType.props,
-      payload: changedProps,
-    });
+    diff.push(createPropsDiff(currentRenderableVDOMElement, changedProps));
   }
 
   // Recursive into children
   const prevChildren = prev.renderedChildren || [];
   const currChildren = currentRenderableVDOMElement.props.children || [];
-  const maxIndex = Math.max(prevChildren.length, currChildren.length);
-  for (let index = 0; index < maxIndex; index++) {
+  // We need to loop through all children to compute the diff correctly
+  // so we pick the length of the element with the most children
+  const maxLength = Math.max(prevChildren.length, currChildren.length);
+  for (let index = 0; index < maxLength; index++) {
     const currChild = currChildren[index];
     if (!currChild) {
       // DON'T FORGET
       // What does it mean if we don't have a child
       // at the current position?
+      // Replace the error with the appropriate diff
       throw new Error(
         'We need to handle this case as otherwise the recursion will crash',
       );
     }
-    const res = getRenderableVDOMDiff(
+    const subTreeDiff = getRenderableVDOMDiff(
       currChild,
       vdom,
       currentRenderableVDOMElement.VDOMPointer,
     );
-    if (res) {
-      diff = [...diff, ...res];
-    }
+    diff = [...diff, ...subTreeDiff];
   }
 
   return diff;
