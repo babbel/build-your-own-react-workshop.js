@@ -86,6 +86,7 @@ export const isChildVDOMPointer = (childVDOMPointer, parentVDOMPointer) => {
   return new RegExp(`^${parentVDOMPointer},(\\d+,?)+`).test(childVDOMPointer);
 };
 
+// Find the root pointers of an array of pointers
 export const findRootVDOMPointers = pointers => {
   if (pointers.length === 0) {
     return pointers;
