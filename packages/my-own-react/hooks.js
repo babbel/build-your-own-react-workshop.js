@@ -77,7 +77,7 @@ const createMakeUseEffect = (registerOnUpdatedCallback, hooksMap) => {
   });
   // This is a utility function that allows you to set a
   // callback to be ran after the next render
-  const registerEffectForNextRender = callback => {
+  const registerEffectForAfterDOMUpdate = callback => {
     // it updates the combined callback reference
     // to call itself first (so it calls all the previously registered callbacks)
     // and then calls the newly registered one
@@ -89,13 +89,13 @@ const createMakeUseEffect = (registerOnUpdatedCallback, hooksMap) => {
   };
   return (VDOMPointer, isFirstRender) => {
     const effectIndexRef = { current: 0 };
-    const hooksMapPointer = hooksMap[VDOMPointer];
+    const currentHook = hooksMap[VDOMPointer];
     if (isFirstRender) {
-      hooksMapPointer.effect = [];
+      currentHook.effect = [];
     }
     return (effectCallback, dependencies) => {
       const effectIndex = effectIndexRef.current;
-      const previousEffect = hooksMapPointer.effect[effectIndex] || {};
+      const previousEffect = currentHook.effect[effectIndex] || {};
 
       const { cleanUp = () => {} } = previousEffect;
       effectIndexRef.current += 1;
@@ -104,13 +104,13 @@ const createMakeUseEffect = (registerOnUpdatedCallback, hooksMap) => {
       }
 
       cleanUp();
-      hooksMapPointer.effect[effectIndex] = {
+      currentHook.effect[effectIndex] = {
         dependencies: [...dependencies],
         cleanUp: () => {},
       };
 
-      registerEffectForNextRender(() => {
-        hooksMapPointer.effect[effectIndex].cleanUp =
+      registerEffectForAfterDOMUpdate(() => {
+        currentHook.effect[effectIndex].cleanUp =
           effectCallback() || (() => {});
       });
     };
