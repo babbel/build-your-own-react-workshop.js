@@ -20,9 +20,9 @@ const isStatesDiffer = (prev, next) => {
 const createMakeUseState =
   (onUpdate, hooksMap) => (VDOMPointer, isFirstRender) => {
     let stateIndexRef = { current: 0 };
-    let hooksMapPointer = hooksMap[VDOMPointer];
+    let currentHook = hooksMap[VDOMPointer];
     if (isFirstRender) {
-      hooksMapPointer.state = [];
+      currentHook.state = [];
     }
 
     // this is what gets called in the React component when you use useState()
@@ -41,21 +41,21 @@ const createMakeUseState =
               ? newStateOrCb
               : () => newStateOrCb;
 
-          const ownState = hooksMapPointer.state[stateIndex];
+          const ownState = currentHook.state[stateIndex];
           const previousState = ownState[0];
-          const currentState = newStateFn(previousState);
-          const shouldUpdateState = isStatesDiffer(previousState, currentState);
+          const newState = newStateFn(previousState);
+          const shouldUpdateState = isStatesDiffer(previousState, newState);
 
           if (shouldUpdateState) {
-            ownState[0] = currentState;
+            ownState[0] = newState;
             onUpdate();
           }
         };
 
-        hooksMapPointer.state[stateIndex] = [computedInitialState, setState];
+        currentHook.state[stateIndex] = [computedInitialState, setState];
       }
 
-      return hooksMapPointer.state[stateIndex];
+      return currentHook.state[stateIndex];
     };
   };
 
