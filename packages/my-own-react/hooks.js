@@ -89,10 +89,11 @@ const createMakeUseEffect = (registerOnUpdatedCallback, hooksMap) => {
       callback();
     };
   };
+
   return (VDOMPointer, isFirstRender) => {
     // DON'T FORGET FOR AFTER THE EFFECT RUNNING ON EVERY UPDATE
     // How similar is useEffect to useState in the way they work?
-    const hooksMapPointer = hooksMap[VDOMPointer];
+    const currentHook = hooksMap[VDOMPointer];
 
     // At this point within this function, we are creating the function
     // that answers to `useEffect` calls within our components.
