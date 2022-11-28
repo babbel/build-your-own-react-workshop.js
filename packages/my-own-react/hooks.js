@@ -78,8 +78,8 @@ const createMakeUseEffect = (registerOnUpdatedCallback, hooksMap) => {
     combinedCallbackRef.current = () => {};
   });
   // This is a utility function that allows you to set a
-  // callback to be ran after the next render
-  const registerEffectForNextRender = callback => {
+  // callback to be ran after the dom has been updated
+  const registerEffectForAfterDOMUpdate = callback => {
     const { current } = combinedCallbackRef;
     // it updates the combined callback reference
     // to call itself first (so it calls all the previously registered callbacks)
