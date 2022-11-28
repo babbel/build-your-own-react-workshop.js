@@ -76,8 +76,8 @@ const createMakeUseEffect = (registerOnUpdatedCallback, hooksMap) => {
     combinedCallbackRef.current = () => {};
   });
   // This is a utility function that allows you to set a
-  // callback to be ran after the next render
-  const registerEffectForNextRender = callback => {
+  // callback to be ran after the DOM update
+  const registerEffectForAfterDOMUpdate = callback => {
     // it updates the combined callback reference
     // to call itself first (so it calls all the previously registered callbacks)
     // and then calls the newly registered one
@@ -87,28 +87,29 @@ const createMakeUseEffect = (registerOnUpdatedCallback, hooksMap) => {
       callback();
     };
   };
+
   return (VDOMPointer, isFirstRender) => {
     const effectIndexRef = { current: 0 };
-    const hooksMapPointer = hooksMap[VDOMPointer];
+    const currentHook = hooksMap[VDOMPointer];
     if (isFirstRender) {
-      hooksMapPointer.effect = [];
+      currentHook.effect = [];
     }
     return (effectCallback, dependencies) => {
       // START HERE
       // This function is the only one you should need to modify for clean-ups!
       const effectIndex = effectIndexRef.current;
-      const previousEffect = hooksMapPointer.effect[effectIndex] || {};
+      const previousEffect = currentHook.effect[effectIndex] || {};
       effectIndexRef.current += 1;
       if (areDependenciesEqual(previousEffect.dependencies, dependencies)) {
         return;
       }
-      hooksMapPointer.effect[effectIndex] = {
+      currentHook.effect[effectIndex] = {
         dependencies: [...dependencies],
       };
-      registerEffectForNextRender(() => {
+      registerEffectForAfterDOMUpdate(() => {
         // Here we will save the cleanUp to be called later in our effect structure
         // but where does the cleanUp come from?
-        // hooksMapPointer.effect[effectIndex].cleanUp = ...
+        // currentHook.effect[effectIndex].cleanUp = ...
 
         effectCallback();
       });
