@@ -19,7 +19,7 @@ const isStatesDiffer = (prev, next) => {
 // VDOMPointer is specific per component.
 const createMakeUseState =
   (onUpdate, hooksMap) => (VDOMPointer, isFirstRender) => {
-    let hooksMapPointer = hooksMap[VDOMPointer];
+    let currentHook = hooksMap[VDOMPointer];
     // START HERE
     // Here we now need to know which state we are trying to take care of.
     // The way React keeps track of those state is by order of calls in
@@ -48,19 +48,19 @@ const createMakeUseState =
             typeof newStateOrCb === 'function'
               ? newStateOrCb
               : () => newStateOrCb;
-          const ownState = hooksMapPointer.state;
+          const ownState = currentHook.state;
           const previousState = ownState[0];
-          const currentState = newStateFn(previousState);
-          const shouldUpdateState = isStatesDiffer(previousState, currentState);
+          const newState = newStateFn(previousState);
+          const shouldUpdateState = isStatesDiffer(previousState, newState);
 
           if (shouldUpdateState) {
-            ownState[0] = currentState;
+            ownState[0] = newState;
             onUpdate();
           }
         };
-        hooksMapPointer.state = [computedInitialState, setState];
+        currentHook.state = [computedInitialState, setState];
       }
-      return hooksMapPointer.state;
+      return currentHook.state;
     };
   };
 
