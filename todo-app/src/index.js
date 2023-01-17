@@ -16,7 +16,7 @@ fallbackEl.setAttribute('class', 'fallback');
 const root = DOMHandlers.createRoot(rootElement);
 // DON'T FORGET
 // You can replace the div here by another tag, for example a span, to make sure your code is fully working!
-root.render(<span />);
+root.render(<div />);
 
 // render fallback
 if (!rootElement.hasChildNodes()) rootElement.append(fallbackEl);
