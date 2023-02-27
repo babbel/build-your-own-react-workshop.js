@@ -1,9 +1,9 @@
 # Hooks
 
-Hooks are the current way to make components a little more useful, they generally allow functional components to have side effects such as keeping state or running side effects after rendering.
+Hooks have made functional components a lot more useful in React apps, allowing them to be stateful  and run side effects after rendering or on prop changes.
 
-For the sake of time and not being too overtly ambitious, within our own React we decided to focus on two of the most used hooks:
-- `useState` to allow components to hold state that can be updated and will trigger updates
+For the sake of time, we decided to focus on two of the most used hooks within our own React:
+- `useState` to allow components to hold state that can be updated and can trigger further updates.
 - `useEffect` to run side effects after render phases
 
 ## Anatomy of a hook
@@ -37,7 +37,7 @@ const Counter = () => {
 };
 ```
 
-So the minimal pieces of a hook anatomy are the following:
+The fundamentals of a hook are:
 1. A react hook is exported as a named export by React
 2. It must be called in a React component
 3. Hooks can't be called conditionally, as React uses the order of calling to keep track of them
