@@ -1,6 +1,6 @@
 # Hooks
 
-Hooks have made functional components a lot more useful in React apps, allowing them to be stateful  and run side effects after rendering or on prop changes.
+Hooks have made functional components a lot more useful in React apps, allowing them to be stateful and run side effects after rendering or on prop changes.
 
 For the sake of time, we decided to focus on two of the most used hooks within our own React:
 - `useState` to allow components to hold state that can be updated and can trigger further updates.
@@ -9,7 +9,7 @@ For the sake of time, we decided to focus on two of the most used hooks within o
 ## Anatomy of a hook
 
 Before starting to think about implementation, let's first think a bit about how any hook normally works.
-We will take `useState` to make the example a bit more concrete, but for the portion of this chapter none of the elements will be specific to `useState`.
+We will take `useState` as an example but the elements and logic described in this document apply for all hooks.
 
 ```javascript
 // We always import a react hook as a named export from react
@@ -39,7 +39,7 @@ const Counter = () => {
 
 The fundamentals of a hook are:
 1. A react hook is exported as a named export by React
-2. It must be called in a React component
+2. It must be called in a React functional component
 3. Hooks can't be called conditionally, as React uses the order of calling to keep track of them
 
 Now let's take our `Counter` above and use it in an `App` component to think further about our architecture:
