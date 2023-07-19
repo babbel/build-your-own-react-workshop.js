@@ -33,14 +33,12 @@ const createNodeRemoved = (VDOMPointer) => ({
 
 const createNodeReplaced = (
   currentRenderableVDOMElement,
-  oldNode,
   parentPointer,
 ) => ({
   VDOMPointer: currentRenderableVDOMElement.VDOMPointer,
   type: diffType.nodeReplaced,
   payload: {
     newNode: currentRenderableVDOMElement,
-    oldNode,
     parentPointer,
   },
 });
@@ -123,7 +121,6 @@ export const getRenderableVDOMDiff = (
     return [
       createNodeReplaced(
         currentRenderableVDOMElement,
-        prevElement,
         parentPointer,
       ),
     ];
