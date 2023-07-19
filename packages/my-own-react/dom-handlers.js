@@ -261,16 +261,15 @@ const applyNodeAdded = (
     renderableVDOM: the renderableVDOM for the current update cycle
   }
   - VDOMPointer: the pointer to the position at which we want to replace the node
-  - oldNode: the renderableVDOMElement we want to replace in the DOM
-  - newNode: the renderableVDOMElement we want the oldNode to be replaced with
+  - newNode: the renderableVDOMElement we want the old node to be replaced with
   - parentPointer: the pointer to the parent of the VDOMPointer
   Side effects:
-  Replace the node oldNode with the node newNode in the browser's DOM, 
+  Replace the node old node with the node newNode in the browser's DOM, 
   updates the renderedElementsMap to reflect the changes
 */
 const applyNodeReplaced = (
   { renderedElementsMap, renderableVDOM },
-  { VDOMPointer, payload: { newNode, oldNode, parentPointer } },
+  { VDOMPointer, payload: { newNode, parentPointer } },
 ) => {
   applyNodeRemoved(
     { renderedElementsMap, renderableVDOM },
